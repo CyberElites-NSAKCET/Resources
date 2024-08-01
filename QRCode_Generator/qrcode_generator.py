@@ -13,6 +13,16 @@ import re
 
 # Function to input QR text
 def get_text():
+    """
+    Prompts the user to input text to encode in the QR code.
+    The user can enter multiple lines of text. To finish input, the user must press Enter twice.
+
+    Returns:
+        str: The input text to encode in the QR code.
+
+    Exits:
+        Exits the program if no text is provided.
+    """
 
     print("\nEnter the text to encode as QR (Press Enter \'Twice\' to finish):\n")
 
@@ -43,6 +53,20 @@ def get_text():
 ## --------------------------------------------------------------------------
 # Function to generate QR
 def qr_gen(input_text, error_correction):
+    """
+    Generates a QR code image from the provided text with a specified error correction level.
+
+    Args:
+        input_text (str): The text to encode in the QR code.
+        error_correction (str): The error correction level ('L', 'M', 'Q', 'H').
+
+    Returns:
+        PIL.Image.Image: The generated QR code image.
+
+    Exits:
+        Exits the program if an invalid error correction level is provided.
+    """
+    
     qr = qrcode.QRCode(
         version=1,
         error_correction=getattr(qrcode.constants, f"ERROR_CORRECT_{error_correction}"),
@@ -61,6 +85,17 @@ def qr_gen(input_text, error_correction):
 ## --------------------------------------------------------------------------
 # Function to get QR Image extension type
 def extension_menu():
+    """
+    Prompts the user to select an image file extension for the QR code image.
+
+    Returns:
+        tuple: A tuple containing the file extension and the image format.
+            - str: The file extension (e.g., '.png', '.jpg').
+            - str: The image format (e.g., "PNG", "JPEG").
+    
+    Exits:
+        Exits the program if an invalid extension is selected.
+    """
     
     extension_type = input("\nEnter the image file extension for your QRCode\n 1. JPEG    2. JPG    3. PNG\n 4. GIF     5. TIFF   6. BMP\n\n --> ").lower().strip()
     image_format = "JPEG"
@@ -96,6 +131,19 @@ def extension_menu():
 ## --------------------------------------------------------------------------
 # Function to add an image to the center of the QR Code
 def add_center_image(qr_image):
+    """
+    Adds a center image to the QR code. The image is scaled to fit the center of the QR code.
+
+    Args:
+        qr_image (PIL.Image.Image): The QR code image.
+
+    Returns:
+        PIL.Image.Image: The QR code image with the center image added.
+
+    Exits:
+        Exits the program if the center image cannot be added due to an error.
+    """
+    
     # center_image_path = input("\nEnter the Full path of the image to place at the center of the QR code (or press Enter to skip): ").strip()
     
     center_image = "White_border_circle.png"
@@ -126,6 +174,17 @@ def add_center_image(qr_image):
 ## --------------------------------------------------------------------------
 # Function to add a title to the QR Code
 def add_title(qr_image, title):
+    """
+    Adds a title text to the top of the QR code image.
+
+    Args:
+        qr_image (PIL.Image.Image): The QR code image.
+        title (str): The title text to add.
+
+    Returns:
+        PIL.Image.Image: The QR code image with the title added.
+    """
+    
     font_file = "Open Sans Regular.ttf"
     font_file_path = os.path.join(FONTS_DIRECTORY_PATH, font_file)
     try:
@@ -154,6 +213,17 @@ def add_title(qr_image, title):
 ## --------------------------------------------------------------------------
 # Function manage all QR creation tasks
 def generate_qrcode():
+    """
+    Manages the entire QR code generation process including text input, QR code creation, adding a center image, 
+    adding a title, and saving the image to a file.
+
+    Returns:
+        str: The file path of the saved QR code image.
+
+    Exits:
+        Exits the program if an error occurs during QR code creation or saving.
+    """
+    
     # Get input text from the user
     input_text = get_text()
 
@@ -211,29 +281,25 @@ def generate_qrcode():
 if __name__ == "__main__":
 
     FORBIDDEN_CHARS = r'[\/:*?"<>|]'
-    QRCODES_GENERATOR_DIRECTORY = 'QRCode_Generator'
-    LOGOS_DIRECTORY = 'Logos'
-    QRCODES_DIRECTORY = 'QRCodes'
-    FONTS_DIRECTORY = 'FONTS'
     
     if os.getcwd()[-9:] == "Resources":
-        QRCODES_GENERATOR_DIRECTORY_PATH = os.path.join(os.getcwd(), QRCODES_GENERATOR_DIRECTORY)
-        LOGOS_DIRECTORY_PATH = os.path.join(QRCODES_GENERATOR_DIRECTORY_PATH, LOGOS_DIRECTORY)
-        FONTS_DIRECTORY_PATH = os.path.join(QRCODES_GENERATOR_DIRECTORY_PATH, FONTS_DIRECTORY)
+        QRCODES_GENERATOR_DIRECTORY_PATH = os.path.join(os.getcwd(), 'QRCode_Generator')
+        LOGOS_DIRECTORY_PATH = os.path.join(QRCODES_GENERATOR_DIRECTORY_PATH, 'Logos')
+        FONTS_DIRECTORY_PATH = os.path.join(QRCODES_GENERATOR_DIRECTORY_PATH, 'FONTS')
         
     elif os.getcwd()[-16:] == "QRCode_Generator":
         QRCODES_GENERATOR_DIRECTORY_PATH = os.getcwd()
-        LOGOS_DIRECTORY_PATH = os.path.join(os.getcwd(), LOGOS_DIRECTORY)
-        FONTS_DIRECTORY_PATH = os.path.join(os.getcwd(), FONTS_DIRECTORY)
+        LOGOS_DIRECTORY_PATH = os.path.join(os.getcwd(), 'Logos')
+        FONTS_DIRECTORY_PATH = os.path.join(os.getcwd(), 'FONTS')
         
     else:
         print("\nPlease change your working directory to the main repository.\nExiting...\n")
         exit(1)
         
-    QRCODES_DIRECTORY_PATH = os.path.join(QRCODES_GENERATOR_DIRECTORY_PATH, QRCODES_DIRECTORY)
+    QRCODES_DIRECTORY_PATH = os.path.join(QRCODES_GENERATOR_DIRECTORY_PATH, 'QRCodes')
 
     print("\n" + " QR Code Generator ".center(29, "-"))
 
     qr_image_path = generate_qrcode()
 
-    print(f"\nQR code \"{qr_image_path[len(QRCODES_DIRECTORY_PATH):]}\" created successfully!\n")
+    print(f"\nQR code \"{qr_image_path[len(QRCODES_GENERATOR_DIRECTORY_PATH) + 1:]}\" created successfully!\n")
