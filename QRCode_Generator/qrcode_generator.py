@@ -49,6 +49,54 @@ def get_text():
 
     return input_text
 
+## --------------------------------------------------------------------------
+# Function to get list of files with specific extension within a directory
+def get_files(directory, extension):
+    """
+    Retrieves a list of files with a given extension from the specified directory.
+
+    Args:
+        directory (str): The directory path to search for files.
+        extension (str): The file extension to filter by (e.g., 'pdf', 'txt').
+
+    Returns:
+        list: A list of filenames with the specified extension in the given directory.
+
+    Raises:
+        FileNotFoundError: If the specified directory does not exist.
+    """
+    
+    pdf_files = [file for file in os.listdir(directory) if file.endswith(f'.{extension.lower()}')]
+    return pdf_files
+
+## --------------------------------------------------------------------------
+# Function to select desired font
+def select_font():
+    """
+    Prompts the user to select a TrueType font from the available fonts in the FONTS_DIRECTORY_PATH.
+
+    Returns:
+        str: The filename of the selected font.
+
+    Raises:
+        SystemExit: If the user input is invalid or an exception occurs.
+    """
+    
+    font_dict = {}
+    truetype_font_files = get_files(FONTS_DIRECTORY_PATH, 'TTF')
+
+    print("\nSelect a font for the QR title:")
+    for index, font_name in enumerate(truetype_font_files):
+        print(f"{index + 1}. {font_name[:-4]}")
+        font_dict[index + 1] = font_name
+    try:
+        font = int(input("\n--> "))
+        font_file = font_dict[font]
+    except:
+        print("\nInvalid Input! Please select correct font index.\n\nExiting...\n")
+        exit(1)
+
+    return font_file
 
 ## --------------------------------------------------------------------------
 # Function to generate QR
@@ -80,7 +128,6 @@ def qr_gen(input_text, error_correction):
     qr_image = qr.make_image(fill_color="black", back_color="white").convert('RGB')
 
     return qr_image
-
 
 ## --------------------------------------------------------------------------
 # Function to get QR Image extension type
@@ -185,10 +232,8 @@ def add_title(qr_image, title):
         PIL.Image.Image: The QR code image with the title added.
     """
     
-    font_file = "Open Sans Regular.ttf"
-    font_file_path = os.path.join(FONTS_DIRECTORY_PATH, font_file)
     try:
-        font = ImageFont.truetype(font_file_path, 30)
+        font = ImageFont.truetype(font_file_path, FONT_SIZE)
     except IOError:
         font = ImageFont.load_default()
 
@@ -278,6 +323,7 @@ def generate_qrcode():
 ### ===========================================================================
 ## Main 
 #
+
 if __name__ == "__main__":
 
     FORBIDDEN_CHARS = r'[\/:*?"<>|]'
@@ -285,20 +331,24 @@ if __name__ == "__main__":
     if os.getcwd()[-9:] == "Resources":
         QRCODES_GENERATOR_DIRECTORY_PATH = os.path.join(os.getcwd(), 'QRCode_Generator')
         LOGOS_DIRECTORY_PATH = os.path.join(QRCODES_GENERATOR_DIRECTORY_PATH, 'Logos')
-        FONTS_DIRECTORY_PATH = os.path.join(QRCODES_GENERATOR_DIRECTORY_PATH, 'FONTS')
+        FONTS_DIRECTORY_PATH = os.path.join(QRCODES_GENERATOR_DIRECTORY_PATH, 'Fonts')
         
     elif os.getcwd()[-16:] == "QRCode_Generator":
         QRCODES_GENERATOR_DIRECTORY_PATH = os.getcwd()
         LOGOS_DIRECTORY_PATH = os.path.join(os.getcwd(), 'Logos')
-        FONTS_DIRECTORY_PATH = os.path.join(os.getcwd(), 'FONTS')
+        FONTS_DIRECTORY_PATH = os.path.join(os.getcwd(), 'Fonts')
         
     else:
-        print("\nPlease change your working directory to the main repository.\nExiting...\n")
+        print("\nPlease change your working directory to the main repository.\n\nExiting...\n")
         exit(1)
-        
+
     QRCODES_DIRECTORY_PATH = os.path.join(QRCODES_GENERATOR_DIRECTORY_PATH, 'QRCodes')
 
     print("\n" + " QR Code Generator ".center(29, "-"))
+
+    font_file = select_font()
+    FONT_SIZE = 40
+    font_file_path = os.path.join(FONTS_DIRECTORY_PATH, font_file)
 
     qr_image_path = generate_qrcode()
 
