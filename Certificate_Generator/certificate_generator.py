@@ -1,11 +1,19 @@
 import os
 from reportlab.pdfgen import canvas
+from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.pdfbase import pdfmetrics
+from reportlab.lib.pagesizes import letter
+from reportlab.lib.colors import HexColor
 from PyPDF2 import PdfWriter, PdfReader
 
-def create_certificate(template_path, names_list, output_path, position):
+def create_certificate(template_path, names_list, output_path, position, font_path, font_size, font_color):
+    pdfmetrics.registerFont(TTFont('CustomFont', font_path))
+
     for index, name in enumerate(names_list):
-        # Create a canvas and draw the name at the given position
-        c = canvas.Canvas(f"tmp/temp_certificate_{index}.pdf")
+        # Create a canvas and set the custom font, size, and color
+        c = canvas.Canvas(f"tmp/temp_certificate_{index}.pdf", pagesize=letter)
+        c.setFont('CustomFont', font_size)
+        c.setFillColor(HexColor(font_color))
         c.drawString(position[0], position[1], name)
         c.save()
 
@@ -26,13 +34,17 @@ def create_certificate(template_path, names_list, output_path, position):
 
 names = ["CyberElites Club"]   # List of names
 
-template_path = "Certificate_Generator/Certificate_Template.pdf"
+template_path = "Certificate_Template.pdf"
 tmp_directory_path = "tmp"
-output_path = "output_certificates"
+output_path = "Generated_Certificates"
+
+font_path = "Fonts/High Tower Text Italic.ttf"
+font_size = 50
+font_color = "#ffffff"
 
 os.makedirs(output_path, exist_ok=True)
 os.makedirs(tmp_directory_path, exist_ok=True)
 
-position = (250, 250)
+position = (420, 225)
 
-create_certificate(template_path, names, output_path, position)
+create_certificate(template_path, names, output_path, position, font_path, font_size, font_color)
