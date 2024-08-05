@@ -14,7 +14,15 @@ def create_certificate(template_path, names_list, output_path, position, font_pa
         c = canvas.Canvas(f"tmp/temp_certificate_{index}.pdf", pagesize=letter)
         c.setFont('CustomFont', font_size)
         c.setFillColor(HexColor(font_color))
-        c.drawString(position[0], position[1], name)
+        
+        # Calculate the width of the name text
+        text_width = pdfmetrics.stringWidth(name, 'CustomFont', font_size)
+        
+        # Calculate the x position to center the text
+        centered_x = position[0] - (text_width / 2)
+        
+        # Draw the name centered at the given position
+        c.drawString(centered_x, position[1], name)
         c.save()
 
         # Merge the canvas with the template
@@ -38,13 +46,13 @@ template_path = "Certificate_Template.pdf"
 tmp_directory_path = "tmp"
 output_path = "Generated_Certificates"
 
-font_path = "Fonts/High Tower Text Italic.ttf"
+font_path = "Fonts/GreatVibes-Regular.ttf"
 font_size = 50
 font_color = "#ffffff"
 
 os.makedirs(output_path, exist_ok=True)
 os.makedirs(tmp_directory_path, exist_ok=True)
 
-position = (420, 225)
+position = (420, 222)
 
 create_certificate(template_path, names, output_path, position, font_path, font_size, font_color)
