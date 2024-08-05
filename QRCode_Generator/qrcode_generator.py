@@ -84,6 +84,10 @@ def select_font():
     
     font_dict = {}
     truetype_font_files = get_files(FONTS_DIRECTORY_PATH, 'TTF')
+    
+    if len(truetype_font_files) == 0:
+        print(f"\nNo fonts available in \"Fonts\" directory.\nPlease add any TTF files to Fonts directory and try again\n\nExiting....\n")
+        exit(1)
 
     print("\nSelect a font for the QR title:")
     for index, font_name in enumerate(truetype_font_files):
@@ -330,18 +334,16 @@ if __name__ == "__main__":
     
     if os.getcwd()[-9:] == "Resources":
         QRCODES_GENERATOR_DIRECTORY_PATH = os.path.join(os.getcwd(), 'QRCode_Generator')
-        LOGOS_DIRECTORY_PATH = os.path.join(QRCODES_GENERATOR_DIRECTORY_PATH, 'Logos')
-        FONTS_DIRECTORY_PATH = os.path.join(QRCODES_GENERATOR_DIRECTORY_PATH, 'Fonts')
-        
+
     elif os.getcwd()[-16:] == "QRCode_Generator":
         QRCODES_GENERATOR_DIRECTORY_PATH = os.getcwd()
-        LOGOS_DIRECTORY_PATH = os.path.join(os.getcwd(), 'Logos')
-        FONTS_DIRECTORY_PATH = os.path.join(os.getcwd(), 'Fonts')
         
     else:
         print("\nPlease change your working directory to the main repository.\n\nExiting...\n")
         exit(1)
 
+    LOGOS_DIRECTORY_PATH = os.path.join(QRCODES_GENERATOR_DIRECTORY_PATH, 'Logos')
+    FONTS_DIRECTORY_PATH = os.path.join(QRCODES_GENERATOR_DIRECTORY_PATH, 'Fonts')
     QRCODES_DIRECTORY_PATH = os.path.join(QRCODES_GENERATOR_DIRECTORY_PATH, 'QRCodes')
 
     print("\n" + " QR Code Generator ".center(29, "-"))
