@@ -1,2 +1,5 @@
-QRCode_Genetaror/QRCodes/
-QRCodes/
+QRCode_Generator/QRCodes/
+Certificate_Generator/tmp/
+Certificate_Generator/Generated_Certificates/
+Certificate_Generator/Certificate_Template/*
+Certificate_Generator/Wordlist/*
