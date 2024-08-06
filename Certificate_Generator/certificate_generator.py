@@ -6,7 +6,7 @@ try:
     from reportlab.pdfbase.ttfonts import TTFont
     from reportlab.pdfgen import canvas
 except ImportError:
-    print("This script requires the 'reportlab' and 'PyPDF2' modules.\nPlease install them using \'pip install reportlab PyPDF2\' and try again.")
+    print("\nThis script requires the \'reportlab\' and \'PyPDF2\' modules.\n\nPlease install them using \'pip install reportlab PyPDF2\' and try again.\n")
     exit(1)
 import os
 
@@ -50,7 +50,7 @@ def select_font():
     truetype_font_files = get_files(FONTS_DIRECTORY_PATH, 'TTF')
     
     if len(truetype_font_files) < 1:
-        print(f"\nNo fonts available in \"Fonts\" directory.\nPlease add any TTF files to Fonts directory and try again\n\nExiting....\n")
+        print(f"\nNo fonts available in \"Fonts\" directory.\nPlease add any valid TTF files to Fonts directory and try again\n\nExiting....\n")
         exit(1)
 
     print("\nSelect a font for the Names:")
@@ -108,7 +108,11 @@ def read_wordlist(file_path):
     
     try:
         with open(file_path, 'r') as file:
-            contents = file.readlines()
+            try:
+                contents = file.readlines()
+            except:
+                print("\nError in reading TXT wordlist!\nPlease ensure that the file is not corrupted.\n\nExiting...\n")
+                exit(1)
         return contents
     except FileNotFoundError:
         print(f"The file {file_path} does not exist.")
@@ -129,14 +133,21 @@ def create_certificate(template_file_path, wordlist_file_path, position, font_pa
         font_color (str): Hex color code for the font color.
     """
     
-    # Register the custom font
-    pdfmetrics.registerFont(TTFont('CustomFont', font_path))
+    try:
+        # Register the custom font
+        pdfmetrics.registerFont(TTFont('CustomFont', font_path))
+    except:
+        print("\nInvalid Font file!\nPlease ensure that you use a valid TTF file.\n\nExiting...\n")
+        exit(1)
     
     # Read and print the contents of the file
     wordlist_contents = read_wordlist(wordlist_file_path)
+    if not wordlist_contents:
+        print("\nEmpty Wordlist file!\nEnsure that Wordlist TXT files has correct Names.\n\nExiting...\n")
+        exit(1)
     
     # Define a single temporary file path
-    tmp_file = os.path.join(TEMPORARY_DIRECTORY_PATH, "tmp_certificate.pdf")
+    tmp_file = os.path.join(TEMPORARY_DIRECTORY_PATH, "tmp_file.pdf")
 
     for name in wordlist_contents:
         name = name.strip()
@@ -163,7 +174,12 @@ def create_certificate(template_file_path, wordlist_file_path, position, font_pa
         # Merge the canvas with the template
         packet = open(tmp_file, "rb")
         new_pdf = PdfReader(packet)
-        existing_pdf = PdfReader(open(template_file_path, "rb"))
+        try:
+            existing_pdf = PdfReader(open(template_file_path, "rb"))
+        except:
+            print("\nError in reading PDF template!\nPlease ensure that the file is not corrupted.\n\nExiting...\n")
+            exit(1)
+            
         output = PdfWriter()
 
         # Add the "watermark" (the new pdf) on the existing page
@@ -201,12 +217,13 @@ if __name__ == "__main__":
     
     print("\n" + " Certificate Generator ".center(35, "-"))
 
+    os.makedirs(TEMPLATE_DIRECTORY_PATH, exist_ok=True)
+    os.makedirs(WORDLIST_DIRECTORY_PATH, exist_ok=True)
+    os.makedirs(FONTS_DIRECTORY_PATH, exist_ok=True)
+
     font_file = select_font()
     font_file_path = os.path.join(FONTS_DIRECTORY_PATH, font_file)
 
-    os.makedirs(TEMPLATE_DIRECTORY_PATH, exist_ok=True)
-    os.makedirs(WORDLIST_DIRECTORY_PATH, exist_ok=True)
-    
     pdf_files = get_files(TEMPLATE_DIRECTORY_PATH, 'PDF')
     template_file = get_single_file('Certificate_Template', TEMPLATE_DIRECTORY_PATH, 'PDF')
     template_file_path = os.path.join(TEMPLATE_DIRECTORY_PATH, template_file)
@@ -218,9 +235,9 @@ if __name__ == "__main__":
     os.makedirs(TEMPORARY_DIRECTORY_PATH, exist_ok=True)
     os.makedirs(OUTPUT_DIRECTORY_PATH, exist_ok=True)
     
-    font_size = 50
+    font_size = 43.5
     font_color = "#55D3E2"
-    position = (420, 375)
+    position = (421, 280)
 
     create_certificate(template_file_path, wordlist_file_path, position, font_file_path, font_size, font_color)
     
