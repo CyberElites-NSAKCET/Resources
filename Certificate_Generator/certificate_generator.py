@@ -30,7 +30,12 @@ def get_files(directory, extension):
         FileNotFoundError: If the specified directory does not exist.
     """
     
-    pdf_files = [file for file in os.listdir(directory) if file.endswith(f'.{extension.lower()}')]
+    try:
+        pdf_files = [file for file in os.listdir(directory) if file.endswith(f'.{extension.lower()}')]
+    except FileNotFoundError as e:
+        print(f"\nError reading template file: {e}")
+        exit(1)
+        
     return pdf_files
 
 ## --------------------------------------------------------------------------
@@ -61,7 +66,7 @@ def select_font():
         font = int(input("\n--> "))
         font_file = font_dict[font]
     except:
-        print("\nInvalid Input! Please select correct font index.\n\nExiting...\n")
+        print("\n\nInvalid Input! Please select correct font index.\n\nExiting...\n")
         exit(1)
 
     return font_file
@@ -90,7 +95,16 @@ def get_single_file(directory_name, directory, extension):
     else:
         print(f"\nFailed to read from {extension.upper()} file.")
         
-    print(f"Please provide a single {extension.upper()} file within the \"{directory_name}\" directory.\n\nExiting....\n")
+        if extension == "TXT":
+            try:
+                wordlist_file_path = os.path.join(WORDLIST_DIRECTORY_PATH, "wordlist.txt")
+                with open(wordlist_file_path, 'w') as f:
+                    pass
+                print("\nCreating an empty 'wordlist.txt' file in 'Wordlist' directory, add contents to it execute the script again!\n")
+            except IOError as e:
+                print(f"Error creating 'wordlist.txt' file: {e}")
+        
+    print(f"Please provide a single {extension.upper()} file within the \"{directory_name}\" directory.\n")
     exit(1)
 
 ## --------------------------------------------------------------------------
@@ -106,21 +120,38 @@ def read_wordlist(file_path):
         list: A list of lines read from the file, or an empty list if the file does not exist.
     """
     
+    forbidden_chars = set('<>\"?|/\\:*')
+
     try:
         with open(file_path, 'r') as file:
             try:
-                contents = file.readlines()
+                lines = file.readlines()
+                contents = [line.strip() for line in lines if line.strip()]
             except:
                 print("\nError in reading TXT wordlist!\nPlease ensure that the file is not corrupted.\n\nExiting...\n")
                 exit(1)
+        
+        line_error = False
+        # Check each name for forbidden characters
+        print()
+        for line_number, line in enumerate(contents, start=1):
+            if any(char in forbidden_chars for char in line):
+                print(f"Error: The wordlist file contains forbidden characters on - line {line_number}: ('{line.strip()}').")
+                line_error = True
+                    
+        if line_error:
+            print("Please remove any of the following characters from the wordlist: < > \" ? | / \\ : *\n\nExiting...\n")
+            exit(1)
+            
         return contents
+
     except FileNotFoundError:
         print(f"The file {file_path} does not exist.")
         return []
 
 ## --------------------------------------------------------------------------
 # Function to generate the certificates with appropriate names
-def create_certificate(template_file_path, wordlist_file_path, position, font_path, font_size, font_color):
+def create_certificate(template_file_path, wordlist_file_path, position, font_path, font_size, font_color, char_spacing):
     """
     Creates certificates by merging names from a wordlist with a template PDF.
 
@@ -131,6 +162,7 @@ def create_certificate(template_file_path, wordlist_file_path, position, font_pa
         font_path (str): Path to the custom font file.
         font_size (int): Font size for the names.
         font_color (str): Hex color code for the font color.
+        char_spacing (float): Additional space between characters in the name text.
     """
     
     try:
@@ -161,14 +193,18 @@ def create_certificate(template_file_path, wordlist_file_path, position, font_pa
         new_canvas.setFont('CustomFont', font_size)
         new_canvas.setFillColor(HexColor(font_color))
         
-        # Calculate the width of the name text
-        text_width = pdfmetrics.stringWidth(name, 'CustomFont', font_size)
+        # Calculate the width of the name text with character spacing
+        total_text_width = sum(pdfmetrics.stringWidth(char, 'CustomFont', font_size) + char_spacing for char in name) - char_spacing
         
-        # Calculate the x position to center the text
-        centered_x = position[0] - (text_width / 2)
+        # Calculate the x position to center the text with character spacing
+        centered_x = position[0] - (total_text_width / 2)
         
-        # Draw the name centered at the given position
-        new_canvas.drawString(centered_x, position[1], name)
+        # Draw each character with the specified spacing
+        x_offset = centered_x
+        for char in name:
+            new_canvas.drawString(x_offset, position[1], char)
+            x_offset += pdfmetrics.stringWidth(char, 'CustomFont', font_size) + char_spacing
+        
         new_canvas.save()
 
         # Merge the canvas with the template
@@ -235,10 +271,11 @@ if __name__ == "__main__":
     os.makedirs(TEMPORARY_DIRECTORY_PATH, exist_ok=True)
     os.makedirs(OUTPUT_DIRECTORY_PATH, exist_ok=True)
     
-    font_size = 43.5
+    font_size = 31.5
     font_color = "#55D3E2"
-    position = (421, 280)
+    position = (421, 264)
+    char_spacing = 1.5
 
-    create_certificate(template_file_path, wordlist_file_path, position, font_file_path, font_size, font_color)
+    create_certificate(template_file_path, wordlist_file_path, position, font_file_path, font_size, font_color, char_spacing)
     
-    print("\nCertificates generation successfull!\n\nSaved all certificates to \"Generated_Certificates\" directory\n")
+    print("\nCertificates generation successfull!\n\nSaved all certificates to \"Generated_Certificates\" directory.\n")
