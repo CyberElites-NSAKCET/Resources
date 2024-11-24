@@ -6,6 +6,9 @@ except ImportError:
     exit(1)
 import os
 import re
+from qrcode.image.styledpil import StyledPilImage
+from qrcode.image.styles.moduledrawers import CircleModuleDrawer
+from qrcode.image.styles.colormasks import SolidFillColorMask
 
 
 ## ===========================================================================
@@ -104,6 +107,7 @@ def select_font():
 
 ## --------------------------------------------------------------------------
 # Function to generate QR
+
 def qr_gen(input_text, error_correction):
     """
     Generates a QR code image from the provided text with a specified error correction level.
@@ -118,18 +122,26 @@ def qr_gen(input_text, error_correction):
     Exits:
         Exits the program if an invalid error correction level is provided.
     """
-    
+
+    # Create a QR Code instance
     qr = qrcode.QRCode(
-        version=1,
-        error_correction=getattr(qrcode.constants, f"ERROR_CORRECT_{error_correction}"),
+        version=4,              # Version controls size of QR
+        error_correction=qrcode.constants.ERROR_CORRECT_H,
         box_size=10,
         border=2,
     )
-
     qr.add_data(input_text)
     qr.make(fit=True)
-    
-    qr_image = qr.make_image(fill_color="black", back_color="white").convert('RGB')
+
+    # Create the QR code with dot modules
+    qr_img = qr.make_image(
+        image_factory=StyledPilImage,
+        module_drawer=CircleModuleDrawer(),  # Dots for QR code modules
+        color_mask=SolidFillColorMask(front_color=(0, 0, 0), back_color=(255, 255, 255)),
+    )
+
+    # Convert QR code to an editable PIL image
+    qr_image = qr_img.convert("RGBA")
 
     return qr_image
 
