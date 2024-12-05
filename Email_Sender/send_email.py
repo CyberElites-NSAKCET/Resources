@@ -1,3 +1,4 @@
+import csv
 import logging
 import os
 import smtplib
@@ -5,108 +6,212 @@ from email import encoders
 from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-from typing import List, Optional
 
-# logging setup for debug and error tracking
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
-class EmailSender:
+# === FUNCTION: READ EMAIL BODY TEMPLATE ===
+def read_email_body_template():
     """
-    A class to send emails via Gmail's SMTP server using App Passwords for authentication.
+    Reads the HTML email body content from a file.
     """
-    def __init__(self, smtp_server: str, smtp_port: int, gmail_user: str, gmail_password: str):
-        """
-        Initializes the EmailSender with SMTP settings and credentials.
-        :param smtp_server: SMTP server address (Gmail).
-        :param smtp_port: Port for SMTP server.
-        :param gmail_user: Gmail username (email address).
-        :param gmail_password: Gmail App Password (or account password if 2FA is disabled).
-        """
-        self.smtp_server = smtp_server
-        self.smtp_port = smtp_port
-        self.gmail_user = gmail_user
-        self.gmail_password = gmail_password
-
-    def send_email(self, subject: str, body: str, to_emails: List[str], 
-                   attachments: Optional[List[str]] = None):
-        """
-        Sends an email with the specified subject, body, and optional attachments.
-        :param subject: Subject of the email.
-        :param body: Body of the email (plain text or HTML).
-        :param to_emails: List of recipient email addresses.
-        :param attachments: List of file paths to attach to the email (optional).
-        """
-        try:
-            # Create a MIME multipart message
-            message = MIMEMultipart()
-            message['From'] = self.gmail_user
-            message['To'] = ', '.join(to_emails)
-            message['Subject'] = subject
-
-            # Attach the body of the email
-            message.attach(MIMEText(body, 'plain'))
-
-            # Attach any files if provided
-            if attachments:
-                for attachment in attachments:
-                    self._attach_file(message, attachment)
-
-            # Connect to the Gmail SMTP server and send the email
-            with smtplib.SMTP(self.smtp_server, self.smtp_port) as server:
-                server.starttls()  # Upgrade the connection to secure encrypted TLS
-                server.login(self.gmail_user, self.gmail_password)
-                text = message.as_string()
-                server.sendmail(self.gmail_user, to_emails, text)
-
-            logger.info("Email sent successfully.")
-        
-        except Exception as e:
-            logger.error(f"Failed to send email: {str(e)}")
-
-    def _attach_file(self, message: MIMEMultipart, file_path: str):
-        """
-        Attach a file to the MIME email message.
-        :param message: The MIME message object.
-        :param file_path: Path to the file to attach.
-        """
-        try:
-            with open(file_path, "rb") as file:
-                mime_base = MIMEBase('application', 'octet-stream')
-                mime_base.set_payload(file.read())
-                encoders.encode_base64(mime_base)
-                mime_base.add_header('Content-Disposition', f'attachment; filename={os.path.basename(file_path)}')
-                message.attach(mime_base)
-
-            logger.info(f"Attached file: {file_path}")
-        except Exception as e:
-            logger.error(f"Failed to attach file {file_path}: {str(e)}")
+    try:
+        with open(BODY_TEMPLATE_FILE_PATH, "r", encoding="utf-8") as file:
+            return file.read()
+    except FileNotFoundError:
+        logging.error(f"Body template file not found: {BODY_TEMPLATE_FILE_PATH}")
+        print(f"Body template file not found: {BODY_TEMPLATE_FILE_PATH}")
+        return ""
 
 
-def main():
+# === FUNCTION: SEND EMAIL ===
+def send_email(recipient_email, name, subject, body, attachments):
     """
-    Main function to set up email parameters and send an email.
+    Sends an email to a single recipient with optional CC and attachments.
+
+    Args:
+        recipient_email (str): Primary recipient's email address.
+        name (str): Recipient's name for personalization.
+        additional_recipients (list): List of CC recipients' email addresses.
+        subject (str): Subject of the email.
+        body (str): HTML content of the email body.
+        attachments (list): List of file paths to be attached.
     """
-    # SMTP settings for Gmail
-    SMTP_SERVER = "smtp.gmail.com"
-    SMTP_PORT = 587  # Port for TLS
+    try:
+        # Set up the email
+        msg = MIMEMultipart()
+        msg["From"] = SENDER_EMAIL
+        msg["To"] = recipient_email
+        msg["Subject"] = subject
 
-    # Email account credentials
-    GMAIL_USER = ""
-    GMAIL_PASSWORD = ""  # Gmail App Password for security
+        # Add the HTML body
+        msg.attach(MIMEText(body, "html"))
 
-    # Email content
-    SUBJECT = ""
-    BODY = ""
-    TO_EMAILS = []  # List of recipients
-    ATTACHMENTS = []  # Optional list of attachments (.txt,.pdf and others)
+        # Add attachments
+        for attachment_path in attachments:
+            if attachment_path.strip():  # Ensure path is not empty
+                try:
+                    attachment = MIMEBase("application", "octet-stream")
+                    with open(attachment_path.strip(), "rb") as file:
+                        attachment.set_payload(file.read())
+                    encoders.encode_base64(attachment)
+                    attachment.add_header(
+                        "Content-Disposition",
+                        f"attachment; filename={os.path.basename(attachment_path)}",
+                    )
+                    msg.attach(attachment)
+                except FileNotFoundError:
+                    logging.error(f"Attachment not found: {attachment_path}")
+                    print(f"Attachment not found: {attachment_path}")
 
-    # Initialize the email sender
-    email_sender = EmailSender(SMTP_SERVER, SMTP_PORT, GMAIL_USER, GMAIL_PASSWORD)
+        # Connect to Gmail's SMTP server and send the email
+        with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
+            server.starttls()
+            server.login(SENDER_EMAIL, SENDER_PASSWORD)
+            server.sendmail(
+                SENDER_EMAIL,
+                [recipient_email],
+                msg.as_string(),
+            )
 
-    # Send the email
-    email_sender.send_email(subject=SUBJECT, body=BODY, to_emails=TO_EMAILS, attachments=ATTACHMENTS)
+        # Log success
+        logging.info(f"Email sent to {recipient_email}")
+        print(f"Email sent to {recipient_email}")
+
+    except Exception as e:
+        # Log failure
+        logging.error(f"Failed to send email to {recipient_email}: {e}")
+        print(f"Failed to send email to {recipient_email}: {e}")
 
 
+# === FUNCTION: SEND BULK EMAILS ===
+def send_bulk_emails(csv_file_path):
+    """
+    Reads recipient details from a CSV file and sends emails to all recipients.
+
+    Args:
+        csv_file_path (str): Path to the CSV file containing recipient details.
+    """
+    try:
+        # Read the email body template
+        body_template = read_email_body_template()
+        if not body_template:
+            print("Email body template is empty. Exiting...")
+            return
+
+        # Open the CSV file
+        with open(csv_file_path, "r", encoding="utf-8") as csv_file:
+            reader = csv.DictReader(csv_file)
+
+            # Determine common attachments if needed
+            common_attachments = []
+            if ATTACHMENT_MODE == "Common":
+                first_row = next(reader, None)
+                if first_row:
+                    common_attachments = (
+                        first_row["Attachments"].split(";")
+                        if first_row.get("Attachments")
+                        else []
+                    )
+
+        # Open the CSV file
+        with open(csv_file_path, "r", encoding="utf-8") as csv_file:
+            reader = csv.DictReader(csv_file)
+            
+            # Process each recipient
+            for row in reader:
+                # Extract recipient details
+                recipient_email = row["Email"]
+                name = row["Name"]
+
+                if ATTACHMENT_MODE == "Respective":
+                    attachments = (
+                        row["Attachments"].split(";") if row.get("Attachments") else []
+                    )
+                elif ATTACHMENT_MODE == "Common":
+                    attachments = common_attachments
+                else:  # ATTACHMENT_MODE == "None"
+                    attachments = []
+
+                # Customize the email body
+                personalized_body = body_template.replace("{{name}}", name)
+
+                # Send the email
+                send_email(
+                    recipient_email, name, EMAIL_SUBJECT, personalized_body, attachments
+                )
+
+    except FileNotFoundError:
+        logging.error(f"CSV file not found: {csv_file_path}")
+        print(f"CSV file not found: {csv_file_path}")
+    except Exception as e:
+        logging.error(f"Error while processing CSV file: {e}")
+        print(f"Error while processing CSV file: {e}")
+
+
+# === MAIN ENTRY POINT ===
 if __name__ == "__main__":
-    main()
+    
+    print("\n" + " Email Sender ".center(24, "-"))
+    
+    if os.getcwd()[-9:] == "Resources":
+        # EMAIL_SENDER_DIRECTORY_PATH = os.path.join(os.getcwd(), 'Email_Sender')
+        print("\nTo run this script, please change your working directory to the \'Email_Sender\' directory using the command \'cd Email_Sender\'.\n\nExiting...\n")
+        exit(1)
+
+    elif os.getcwd()[-12:] == "Email_Sender":
+        EMAIL_SENDER_DIRECTORY_PATH = os.getcwd()
+        ROOT_REPO_PATH = os.path.join(os.getcwd(), '..')
+        
+    else:
+        print("\nPlease change your working directory to the main repository.\n\nExiting...\n")
+        exit(1)
+    
+    
+    # === CONFIGURATION ===
+    SMTP_SERVER = "smtp.gmail.com"
+    SMTP_PORT = 587
+    SENDER_EMAIL = "cyberelites.nsakcet@gmail.com"
+    EMAIL_SUBJECT = "Subject"
+
+    BODY_TEMPLATE_FILE_PATH = os.path.join(EMAIL_SENDER_DIRECTORY_PATH, "body_template.html")
+    LOG_FILE_PATH = os.path.join(EMAIL_SENDER_DIRECTORY_PATH, "email_log.txt")
+    CSV_FILE_PATH = os.path.join(EMAIL_SENDER_DIRECTORY_PATH, "recipients.csv")
+    GMAIL_APP_PASSWORD_FILE_PATH  = os.path.join(EMAIL_SENDER_DIRECTORY_PATH, "gmail_app_password.txt")
+
+    # === ATTACHMENT MODE ===
+    # 'None': No attachments will be sent.
+    # 'Common': The first recipient's attachments will be sent to everyone.
+    # 'Respective': Attachments from the CSV file will be used for each recipient respectively.
+    ATTACHMENT_MODE = "Respective"  # Change this to 'None', 'Common', or 'Respective' (in quotes)
+
+    # === SET UP LOGGING ===
+    logging.basicConfig(
+        filename=LOG_FILE_PATH,
+        level=logging.INFO,
+        format="%(asctime)s - %(levelname)s - %(message)s",
+    )
+    
+    if not os.path.exists(CSV_FILE_PATH):
+        print("\n\'recipients.csv\' file not found!\nCreating and Initializing the file with header row.\n")
+        with open(CSV_FILE_PATH, mode='w', newline='') as csv_file:
+            csv_writer = csv.writer(csv_file)
+            csv_writer.writerow(['Name', 'Email', 'Attachments'])  # Write header row
+        print("\nExiting....\n")
+        exit(1)
+    
+    try:
+        # Read the names from the file
+        with open(GMAIL_APP_PASSWORD_FILE_PATH, 'r') as file:
+            lines = file.readlines()
+            password = [line.strip() for line in lines if line.strip()]
+            if len(password) != 1 or password[0].count(" ") != 0:
+                print("Error in gmail app password!!!")
+                exit(1)
+        SENDER_PASSWORD = password[0]
+            
+    except FileNotFoundError:
+        print("\nError in reading password file!\nPlease ensure that the file exists at correct location.\n\nExiting...\n")
+        exit(1)
+    except:
+        print("\nError in reading password file!\nPlease ensure that the file is not corrupted.\n\nExiting...\n")
+        exit(1)
+
+    send_bulk_emails(CSV_FILE_PATH)
