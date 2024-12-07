@@ -37,7 +37,7 @@ This project automates email responses to Google Form submissions. Using Apps Sc
 1. In the linked Google Sheet, navigate to **Extensions > Apps Script**.
 
 ### Import the Script
-1. Open the `appscript.js` file in this repository to view the script.
+1. Open the `sheet_appscript.js` file in this repository to view the script.
 2. Copy the contents of the file.
 3. Paste the script into the Apps Script editor in Google Sheets.
 
@@ -67,8 +67,3 @@ This project automates email responses to Google Form submissions. Using Apps Sc
 - **Email Index**: Ensure `e.values[1]` corresponds to the email column in your sheet.
 - **Gmail Limits**: Free Gmail accounts are limited to 100 emails per day.
 
----
-
-## License
-
-This project is licensed under the MIT License. Feel free to use and modify it as needed.
