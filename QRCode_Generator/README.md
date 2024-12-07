@@ -30,21 +30,22 @@ A Python-based tool to generate customizable QR codes with features such as diff
 Ensure the following directory structure is set up before running the script:
 
 ```plaintext
+Fonts/
+│
+└── <font_files>.ttf
+
 QRCode_Generator/
+│
+├── qrcode_generator.py
 │
 ├── Logos/
 │   └── <optional_center_images>
 │
-├── Fonts/
-│   └── <font_files>.ttf
-│
-├── QRCodes/ (created automatically for generated QR codes)
-│
-└── QRCode_Generator.py
+└── QRCodes/ (created automatically for generated QR codes)
 ```
 
+- **Fonts/**: (in root directory) Contains TrueType font files (.ttf) for title text rendering.
 - **Logos/**: Holds optional center images (default files provided for white/black backgrounds).
-- **Fonts/**: Contains TrueType font files (.ttf) for title text rendering.
 - **QRCodes/**: Automatically created for saving generated QR codes.
 
 ---
@@ -96,7 +97,7 @@ QRCode_Generator/
 - Ensure the image fits well within the QR code.
 
 ### QR Code Styling
-- Adjust `box_size`, `border`, or `version` settings in the `standard_qr_gen` and `dots_qr_gen` functions for finer control.
+- Adjust `box_size`, `border`, or `version` settings in the `standard_qr_gen` and `dots_qr_gen` functions for finer control (better if these values are not modified).
 
 ---
 
@@ -111,4 +112,3 @@ QRCode_Generator/
 
 ### Keyboard Interrupts
 - Gracefully handles interruptions during execution.
-
