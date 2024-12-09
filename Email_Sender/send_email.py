@@ -2,6 +2,7 @@ import csv
 import logging
 import os
 import smtplib
+import sys
 from email import encoders
 from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
@@ -20,6 +21,20 @@ def read_email_body_template():
         print(f"Body template file not found: {BODY_TEMPLATE_FILE_PATH}")
         return ""
 
+def add_attachment(msg, attachment_path):
+    try:
+        attachment = MIMEBase("application", "octet-stream")
+        with open(attachment_path.strip(), "rb") as file:
+            attachment.set_payload(file.read())
+        encoders.encode_base64(attachment)
+        attachment.add_header(
+            "Content-Disposition",
+            f"attachment; filename={os.path.basename(attachment_path)}",
+        )
+        msg.attach(attachment)
+    except FileNotFoundError:
+        logging.error(f"Attachment not found: {attachment_path}")
+        print(f"Attachment not found: {attachment_path}")
 
 # === FUNCTION: SEND EMAIL ===
 def send_email(recipient_email, name, subject, body, attachments):
@@ -43,23 +58,22 @@ def send_email(recipient_email, name, subject, body, attachments):
 
         # Add the HTML body
         msg.attach(MIMEText(body, "html"))
+        
+        # Check command-line arguments
+        if len(sys.argv) > 1 and sys.argv[1] == "other_script":
+            output_txt_path = os.path.join(os.path.join(ROOT_REPO_PATH, "New_Folder"), "output_dir_path.txt")
+            
+            with open(output_txt_path, "r") as file:
+                output_txt_path = file.read()
+                
+            attachment_path = os.path.join(output_txt_path, attachments)
+            add_attachment(msg, attachment_path)
+        else:
+            for attachment_path in attachments:
+                if attachment_path.strip():  # Ensure path is not empty
+                    attachment_path = os.path.join(os.path.join(EMAIL_SENDER_DIRECTORY_PATH, "Attachments"), attachment_path)
 
-        # Add attachments
-        for attachment_path in attachments:
-            if attachment_path.strip():  # Ensure path is not empty
-                try:
-                    attachment = MIMEBase("application", "octet-stream")
-                    with open(attachment_path.strip(), "rb") as file:
-                        attachment.set_payload(file.read())
-                    encoders.encode_base64(attachment)
-                    attachment.add_header(
-                        "Content-Disposition",
-                        f"attachment; filename={os.path.basename(attachment_path)}",
-                    )
-                    msg.attach(attachment)
-                except FileNotFoundError:
-                    logging.error(f"Attachment not found: {attachment_path}")
-                    print(f"Attachment not found: {attachment_path}")
+                    add_attachment(msg, attachment_path)
 
         # Connect to Gmail's SMTP server and send the email
         with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
@@ -89,6 +103,8 @@ def send_bulk_emails(csv_file_path):
     Args:
         csv_file_path (str): Path to the CSV file containing recipient details.
     """
+    global ATTACHMENT_MODE
+    
     try:
         # Read the email body template
         body_template = read_email_body_template()
@@ -99,6 +115,10 @@ def send_bulk_emails(csv_file_path):
         # Open the CSV file
         with open(csv_file_path, "r", encoding="utf-8") as csv_file:
             reader = csv.DictReader(csv_file)
+            
+            # Check command-line arguments
+            if len(sys.argv) > 1 and sys.argv[1] == "other_script":
+                ATTACHMENT_MODE = "Other"
 
             # Determine common attachments if needed
             common_attachments = []
@@ -127,6 +147,8 @@ def send_bulk_emails(csv_file_path):
                     )
                 elif ATTACHMENT_MODE == "Common":
                     attachments = common_attachments
+                elif ATTACHMENT_MODE == "Other":
+                    attachments = name.replace(" ","_") + "_certificate.pdf"
                 else:  # ATTACHMENT_MODE == "None"
                     attachments = []
 
@@ -152,9 +174,8 @@ if __name__ == "__main__":
     print("\n" + " Email Sender ".center(24, "-"))
     
     if os.getcwd()[-9:] == "Resources":
-        # EMAIL_SENDER_DIRECTORY_PATH = os.path.join(os.getcwd(), 'Email_Sender')
-        print("\nTo run this script, please change your working directory to the \'Email_Sender\' directory using the command \'cd Email_Sender\'.\n\nExiting...\n")
-        exit(1)
+        EMAIL_SENDER_DIRECTORY_PATH = os.path.join(os.getcwd(), 'Email_Sender')
+        ROOT_REPO_PATH = os.getcwd()
 
     elif os.getcwd()[-12:] == "Email_Sender":
         EMAIL_SENDER_DIRECTORY_PATH = os.getcwd()
@@ -170,11 +191,24 @@ if __name__ == "__main__":
     SMTP_PORT = 587
     SENDER_EMAIL = "cyberelites.nsakcet@gmail.com"
     EMAIL_SUBJECT = "Subject"
-
-    BODY_TEMPLATE_FILE_PATH = os.path.join(EMAIL_SENDER_DIRECTORY_PATH, "body_template.html")
-    LOG_FILE_PATH = os.path.join(EMAIL_SENDER_DIRECTORY_PATH, "email_log.txt")
+    
+    ATTACHMENTS_DIRECTORY_PATH = os.path.join(EMAIL_SENDER_DIRECTORY_PATH, "Attachments")
     CSV_FILE_PATH = os.path.join(EMAIL_SENDER_DIRECTORY_PATH, "recipients.csv")
-    GMAIL_APP_PASSWORD_FILE_PATH  = os.path.join(EMAIL_SENDER_DIRECTORY_PATH, "gmail_app_password.txt")
+    
+    if len(sys.argv) > 1 and sys.argv[1] == "other_script":
+        DIR_PATH = os.path.join(ROOT_REPO_PATH, "New_Folder")
+    else:
+        DIR_PATH = EMAIL_SENDER_DIRECTORY_PATH
+
+    BODY_TEMPLATE_FILE_PATH = os.path.join(DIR_PATH, "body_template.html")
+    LOG_FILE_PATH = os.path.join(DIR_PATH, "email_log.txt")
+    GMAIL_APP_PASSWORD_FILE_PATH  = os.path.join(DIR_PATH, "gmail_app_password.txt")
+    
+    os.makedirs(ATTACHMENTS_DIRECTORY_PATH, exist_ok=True)
+    for file in [BODY_TEMPLATE_FILE_PATH, LOG_FILE_PATH, GMAIL_APP_PASSWORD_FILE_PATH]:
+        if not os.path.exists(file):
+            with open(file, 'w') as f:
+                pass
 
     # === ATTACHMENT MODE ===
     # 'None': No attachments will be sent.
@@ -210,8 +244,8 @@ if __name__ == "__main__":
     except FileNotFoundError:
         print("\nError in reading password file!\nPlease ensure that the file exists at correct location.\n\nExiting...\n")
         exit(1)
-    except:
-        print("\nError in reading password file!\nPlease ensure that the file is not corrupted.\n\nExiting...\n")
+    except Exception as e:
+        print(f"\nError in reading password file!\n{e}\nPlease ensure that the file is not corrupted.\n\nExiting...\n")
         exit(1)
 
     send_bulk_emails(CSV_FILE_PATH)

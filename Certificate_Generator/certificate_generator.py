@@ -9,6 +9,7 @@ except ImportError:
     print("\nThis script requires the \'reportlab\' and \'PyPDF2\' modules.\n\nPlease install them using \'pip install reportlab PyPDF2\' and try again.\n")
     exit(1)
 import os
+import sys
 
 
 ## ===========================================================================
@@ -278,6 +279,7 @@ if __name__ == "__main__":
     
     if os.getcwd()[-9:] == "Resources":
         CERTIFICATE_GENERATOR_DIRECTORY_PATH = os.path.join(os.getcwd(), 'Certificate_Generator')
+        ROOT_REPO_PATH = os.getcwd()
         FONTS_DIRECTORY_PATH = os.path.join(os.getcwd(), 'Fonts')
         
     elif os.getcwd()[-21:] == "Certificate_Generator":
@@ -294,6 +296,12 @@ if __name__ == "__main__":
     TEMPORARY_DIRECTORY_PATH = os.path.join(CERTIFICATE_GENERATOR_DIRECTORY_PATH, 'tmp')
     OUTPUT_DIRECTORY_PATH = os.path.join(CERTIFICATE_GENERATOR_DIRECTORY_PATH, 'Generated_Certificates')
     
+    if len(sys.argv) > 1 and sys.argv[1] == "other_script":
+        TEMPLATE_DIRECTORY_PATH = os.path.join(os.path.join(ROOT_REPO_PATH, "New_Folder"), "Certificate_Template")
+        WORDLIST_DIRECTORY_PATH = os.path.join(os.path.join(ROOT_REPO_PATH, "New_Folder"), "Wordlist")
+        TEMPORARY_DIRECTORY_PATH = os.path.join(os.path.join(ROOT_REPO_PATH, "New_Folder"), "tmp")
+        OUTPUT_DIRECTORY_PATH = os.path.join(os.path.join(ROOT_REPO_PATH, "New_Folder"), "Generated_Certificates")
+        
     print("\n" + " Certificate Generator ".center(35, "-"))
 
     os.makedirs(TEMPLATE_DIRECTORY_PATH, exist_ok=True)
@@ -315,4 +323,10 @@ if __name__ == "__main__":
 
     certificates_dir = create_certificate(template_file_path, wordlist_file_path)
     
-    print("\n\nCertificates generation successfull!\n\nSaved all certificates to \"" + certificates_dir[certificates_dir.find("Certificate_Generator"):] + "\" directory.\n")
+    # Check command-line arguments
+    if len(sys.argv) > 1 and sys.argv[1] == "other_script":
+        output_dir_path_file = os.path.join(os.path.join(ROOT_REPO_PATH, "New_Folder"), "output_dir_path.txt")
+        with open(output_dir_path_file, "w") as file:
+            file.write(certificates_dir)
+            
+    print("\n\nCertificates generation successfull!\n\nSaved all certificates to \"" + certificates_dir[certificates_dir.find("Resources")+10:] + "\" directory.\n")
