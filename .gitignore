@@ -3,3 +3,10 @@ Certificate_Generator/tmp/
 Certificate_Generator/Generated_Certificates*
 Certificate_Generator/Certificate_Template/*
 Certificate_Generator/Wordlist/*
+Email_Sender/__pycache__
+New_Folder/output_dir_path.txt
+New_Folder/tmp/
+New_Folder/Generated_Certificates*
+New_Folder/Certificate_Template/*
+New_Folder/Wordlist/*
+Email_Sender/Attachments/
