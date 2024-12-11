@@ -4,7 +4,7 @@ import csv
 import os
 from Certificate_Generator.certificate_generator import get_files, get_single_file
 from Email_Sender.send_email import check_csv, sort_csv
-        
+
 
 # === MAIN ENTRY POINT ===
 if __name__ == "__main__":

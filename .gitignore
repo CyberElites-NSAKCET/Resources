@@ -5,6 +5,7 @@ Certificate_Generator/Certificate_Template/*
 Certificate_Generator/Wordlist/*
 Certificate_Generator/__pycache__
 Email_Sender/__pycache__
+Email_Sender/Spreadsheet/*
 Email_Sender/Attachments/*
 Email_Sender/email_log.txt
 Email_Sender/gmail_app_password.txt

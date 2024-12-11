@@ -2,12 +2,18 @@ import csv
 import logging
 import os
 import smtplib
-from socket import gaierror
 import sys
 from email import encoders
 from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from socket import gaierror
+
+# Get the parent directory, add it to python path and import the modules
+parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.append(parent_dir)
+from Certificate_Generator.certificate_generator import get_files, get_single_file
+
 
 # === FUNCTION: READ EMAIL BODY TEMPLATE ===
 def read_email_body_template():
@@ -53,22 +59,24 @@ def sort_csv(file_path):
     Returns:
         list: A list of sorted lines of the file
     """
+    # Read, sort, and overwrite the file
     try:
-        # Read the names from the file
-        with open(file_path, "r", encoding="utf-8") as csv_file:
-            rows = csv_file.readlines()
-            header = rows.pop(0).strip()
+        with open(file_path, 'r', newline='', encoding='utf-8') as csvfile:
+            reader = csv.DictReader(csvfile)
+            # Sort rows by the "Full Name" column
+            sorted_rows = sorted(reader, key=lambda row: row["Full Name"])
+            fieldnames = reader.fieldnames  # Preserve the original header order
     except Exception as e:
         print(f"\nError in reading TXT wordlist!\nPlease ensure that the file is not corrupted.\n\nExiting...\n")
         exit(1)
 
-    # Strip whitespace and sort the names
-    sorted_rows = sorted(row.strip() for row in rows if row.strip())
-    sorted_rows.insert(0,header)
-
     try:
-        with open(file_path, 'w', encoding="utf-8") as output_file:
-            output_file.write('\n'.join(sorted_rows))
+        # Overwrite the same file with sorted data
+        with open(file_path, 'w', newline='', encoding='utf-8') as csvfile:
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+            writer.writeheader()
+            writer.writerows(sorted_rows)
+
     except Exception as e:
         print(f"\nError sorting the csv file.\nMake sure that the file isn't open!\n\nExiting...\n")
         exit(1)
@@ -387,7 +395,12 @@ if __name__ == "__main__":
     ATTACHMENT_MODE = "None"  # Change this to 'None', 'Common', or 'Respective' (in quotes)
     
     ATTACHMENTS_DIRECTORY_PATH = os.path.join(EMAIL_SENDER_DIRECTORY_PATH, "Attachments")
-    CSV_FILE_PATH = os.path.join(EMAIL_SENDER_DIRECTORY_PATH, "recipients.csv")
+    SPREADSHEET_DIRECTORY_PATH = os.path.join(EMAIL_SENDER_DIRECTORY_PATH, "Spreadsheet")
+    os.makedirs(SPREADSHEET_DIRECTORY_PATH, exist_ok=True)
+    
+    csv_files = get_files(SPREADSHEET_DIRECTORY_PATH, 'CSV')
+    spreadsheet_file = get_single_file('Spreadsheet', SPREADSHEET_DIRECTORY_PATH, 'CSV')
+    CSV_FILE_PATH = os.path.join(SPREADSHEET_DIRECTORY_PATH, spreadsheet_file)
     
     if len(sys.argv) > 1 and sys.argv[1] == "other_script":
         NEW_FOLDER_PATH = os.path.join(ROOT_REPO_PATH, "New_Folder")
@@ -440,7 +453,7 @@ if __name__ == "__main__":
         print(f"\nError in reading password file!\n{e}\nPlease ensure that the file is not corrupted.\n\nExiting...\n")
         exit(1)
 
-
+    sort_csv(CSV_FILE_PATH)
     # Check command-line arguments
     if not (len(sys.argv) > 1 and sys.argv[1] == "other_script"):
         check_csv(CSV_FILE_PATH, ATTACHMENT_MODE)
