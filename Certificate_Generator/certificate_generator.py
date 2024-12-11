@@ -316,10 +316,29 @@ if __name__ == "__main__":
     wordlist_file = get_single_file('Wordlist', WORDLIST_DIRECTORY_PATH, 'TXT')
     wordlist_file_path = os.path.join(WORDLIST_DIRECTORY_PATH, wordlist_file)
     
-    FONT_SIZE = 31.5
-    FONT_COLOR = "#55D3E2"
-    POSITION = (421, 264)
-    CHAR_SPACING = 1.5
+    try:
+        certificate_type = int(input(f"\nSelect the type of certificate:\n  1. Membership Certificate\n  2. Event Certificate\n\n--> "))
+    except KeyboardInterrupt:
+        print("\n\nKeyboard Interrupt!\n\nExiting...\n")
+        exit(1)
+    except Exception as e:
+        print("\n\nInvalid Input!\nPlease select correct certificate type.\n\nExiting...\n")
+        exit(1)
+        
+    if certificate_type == 1:    # Membership_Certificate
+        FONT_SIZE = 31.5
+        FONT_COLOR = "#55D3E2"
+        POSITION = (421, 264)
+        CHAR_SPACING = 1.5
+    
+    elif certificate_type == 2:    # Event_Certificate
+        FONT_SIZE = 34
+        FONT_COLOR = "#ffffff"
+        POSITION = (421, 242)
+        CHAR_SPACING = 1.15
+    else:
+        print("\n\nInvalid Input!\nPlease select correct certificate type.\n\nExiting...\n")
+        exit(1)
 
     certificates_dir = create_certificate(template_file_path, wordlist_file_path)
     
