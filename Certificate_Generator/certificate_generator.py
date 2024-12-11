@@ -296,11 +296,11 @@ if __name__ == "__main__":
     TEMPORARY_DIRECTORY_PATH = os.path.join(CERTIFICATE_GENERATOR_DIRECTORY_PATH, 'tmp')
     OUTPUT_DIRECTORY_PATH = os.path.join(CERTIFICATE_GENERATOR_DIRECTORY_PATH, 'Generated_Certificates')
     
-    if len(sys.argv) > 1 and sys.argv[1] == "other_script":
-        TEMPLATE_DIRECTORY_PATH = os.path.join(os.path.join(ROOT_REPO_PATH, "New_Folder"), "Certificate_Template")
-        WORDLIST_DIRECTORY_PATH = os.path.join(os.path.join(ROOT_REPO_PATH, "New_Folder"), "Wordlist")
-        TEMPORARY_DIRECTORY_PATH = os.path.join(os.path.join(ROOT_REPO_PATH, "New_Folder"), "tmp")
-        OUTPUT_DIRECTORY_PATH = os.path.join(os.path.join(ROOT_REPO_PATH, "New_Folder"), "Generated_Certificates")
+    if len(sys.argv) > 1 and sys.argv[1] == "extract_certify_and_email_script":
+        TEMPLATE_DIRECTORY_PATH = os.path.join(os.path.join(ROOT_REPO_PATH, "Certificate_Email_Automation"), "Certificate_Template")
+        WORDLIST_DIRECTORY_PATH = os.path.join(os.path.join(ROOT_REPO_PATH, "Certificate_Email_Automation"), "Wordlist")
+        TEMPORARY_DIRECTORY_PATH = os.path.join(os.path.join(ROOT_REPO_PATH, "Certificate_Email_Automation"), "tmp")
+        OUTPUT_DIRECTORY_PATH = os.path.join(os.path.join(ROOT_REPO_PATH, "Certificate_Email_Automation"), "Generated_Certificates")
         
     print("\n" + " Certificate Generator ".center(35, "-"))
 
@@ -343,9 +343,9 @@ if __name__ == "__main__":
     certificates_dir = create_certificate(template_file_path, wordlist_file_path)
     
     # Check command-line arguments
-    if len(sys.argv) > 1 and sys.argv[1] == "other_script":
-        output_dir_path_file = os.path.join(os.path.join(ROOT_REPO_PATH, "New_Folder"), "output_dir_path.txt")
-        with open(output_dir_path_file, "w") as file:
+    if len(sys.argv) > 1 and sys.argv[1] == "extract_certify_and_email_script":
+        gen_certs_dir_path = os.path.join(os.path.join(ROOT_REPO_PATH, "Certificate_Email_Automation"), "gen_certs_dir_path.txt")
+        with open(gen_certs_dir_path, "w") as file:
             file.write(certificates_dir)
             
     print("\n\nCertificates generation successfull!\n\nSaved all certificates to \"" + certificates_dir[certificates_dir.find("Resources")+10:] + "\" directory.\n")

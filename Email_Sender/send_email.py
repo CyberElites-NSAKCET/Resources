@@ -116,13 +116,13 @@ def send_email(recipient_email, name, subject, body, attachments):
         msg.attach(MIMEText(body, "html"))
         
         # Check command-line arguments
-        if len(sys.argv) > 1 and sys.argv[1].strip() == "other_script":
-            output_txt_path = os.path.join(NEW_FOLDER_PATH, "output_dir_path.txt")
+        if len(sys.argv) > 1 and sys.argv[1].strip() == "extract_certify_and_email_script":
+            gen_certs_dir_path = os.path.join(CERTIFICATE_EMAIL_AUTOMATION_DIR_PATH, "gen_certs_dir_path.txt")
             
-            with open(output_txt_path, "r") as file:
-                output_txt_path = file.read()
+            with open(gen_certs_dir_path, "r") as file:
+                gen_certs_dir_path = file.read()
                 
-            attachment_path = os.path.join(output_txt_path, attachments)
+            attachment_path = os.path.join(gen_certs_dir_path, attachments)
             add_attachment(msg, attachment_path)
             
         else:
@@ -150,7 +150,7 @@ def send_email(recipient_email, name, subject, body, attachments):
         print(f"Email sent to {recipient_email}")
 
     except smtplib.SMTPAuthenticationError as e:
-        print("Incorrect Gmail App Password!")
+        print(f"Incorrect Gmail App Password!\nAuthentication Failed for \'{SENDER_EMAIL}\' with provided password.\n")
         exit(1)   
     except gaierror as e:
         print("Failed to send Emails....\nCheck your Internet connection\n")
@@ -236,7 +236,7 @@ def check_attachments(csv_file_path, attachment_mode):
             if first_row:
                 common_attachments = (first_row["Attachments"].split(";"))
                 for attachment in common_attachments:
-                    if not attachment:
+                    if not attachment or attachment.strip() == "":
                         is_missing = True
                         print(f"\nThe first row attachment is not specified for the selected Attachment Mode \'Common\'")
                     attachment_path = os.path.join(ATTACHMENTS_DIRECTORY_PATH, attachment)
@@ -259,20 +259,30 @@ def check_attachments(csv_file_path, attachment_mode):
                 name = row.get("Full Name", "").title().strip()
                 attachments = f"{name.title().strip().replace(' ', '_')}_certificate.pdf"
                 
-                output_txt_path = os.path.join(NEW_FOLDER_PATH, "output_dir_path.txt")
-                with open(output_txt_path, "r") as file:
-                    output_txt_path = file.read()
+                gen_certs_dir_path = os.path.join(CERTIFICATE_EMAIL_AUTOMATION_DIR_PATH, "gen_certs_dir_path.txt")
+                with open(gen_certs_dir_path, "r") as file:
+                    gen_certs_dir_path = file.read()
                     
-                attachment_path = os.path.join(output_txt_path, attachments)
+                attachment_path = os.path.join(gen_certs_dir_path, attachments)
                 if not os.path.exists(attachment_path):
                     is_missing = True                    
-                    print(f"Attachment not found: Row Index \'{row_index}\' - {attachment}")
+                    print(f"Attachment not found: Row Index \'{row_index}\' - {attachments}")
                     
         if is_missing:
             print("\nExiting...\n")
             exit(1)
             
+def check_body_template(body_template_path):
+    with open(body_template_path, "r") as body_file:
+        lines = [line for line in body_file if line.strip()]
 
+    if not lines:
+        print("\nEmpty HTML body template file\n\nExiting...\n")
+        exit(1)
+
+    if all(line.lstrip().startswith("<!--") and line.rstrip().endswith("-->") for line in lines):
+        print("\nEvery line is commented in HTML body template file\nPlease add valid html code.\n\nExiting...\n")
+        exit(1)
 
 # === FUNCTION: SEND BULK EMAILS ===
 def send_bulk_emails(csv_file_path):
@@ -392,7 +402,7 @@ if __name__ == "__main__":
     # 'None': No attachments will be sent.
     # 'Common': The first recipient's attachments will be sent to everyone.
     # 'Respective': Attachments from the CSV file will be used for each recipient respectively.
-    ATTACHMENT_MODE = "None"  # Change this to 'None', 'Common', or 'Respective' (in quotes)
+    ATTACHMENT_MODE = "Common"  # Change this to 'None', 'Common', or 'Respective' (in quotes)
     
     ATTACHMENTS_DIRECTORY_PATH = os.path.join(EMAIL_SENDER_DIRECTORY_PATH, "Attachments")
     SPREADSHEET_DIRECTORY_PATH = os.path.join(EMAIL_SENDER_DIRECTORY_PATH, "Spreadsheet")
@@ -402,10 +412,10 @@ if __name__ == "__main__":
     spreadsheet_file = get_single_file('Spreadsheet', SPREADSHEET_DIRECTORY_PATH, 'CSV')
     CSV_FILE_PATH = os.path.join(SPREADSHEET_DIRECTORY_PATH, spreadsheet_file)
     
-    if len(sys.argv) > 1 and sys.argv[1] == "other_script":
-        NEW_FOLDER_PATH = os.path.join(ROOT_REPO_PATH, "New_Folder")
-        DIR_PATH = NEW_FOLDER_PATH
-        CSV_FILE_PATH = os.path.join(NEW_FOLDER_PATH, "tosend.csv")
+    if len(sys.argv) > 1 and sys.argv[1] == "extract_certify_and_email_script":
+        CERTIFICATE_EMAIL_AUTOMATION_DIR_PATH = os.path.join(ROOT_REPO_PATH, "Certificate_Email_Automation")
+        DIR_PATH = CERTIFICATE_EMAIL_AUTOMATION_DIR_PATH
+        CSV_FILE_PATH = os.path.join(CERTIFICATE_EMAIL_AUTOMATION_DIR_PATH, "tosend.csv")
         ATTACHMENT_MODE = "Other"
         EMAIL_SUBJECT == sys.argv[2]
     else:
@@ -454,8 +464,11 @@ if __name__ == "__main__":
         exit(1)
 
     sort_csv(CSV_FILE_PATH)
+    
+    check_body_template(BODY_TEMPLATE_FILE_PATH)
+    
     # Check command-line arguments
-    if not (len(sys.argv) > 1 and sys.argv[1] == "other_script"):
+    if not (len(sys.argv) > 1 and sys.argv[1] == "extract_certify_and_email_script"):
         check_csv(CSV_FILE_PATH, ATTACHMENT_MODE)
     
     check_attachments(CSV_FILE_PATH, ATTACHMENT_MODE)
