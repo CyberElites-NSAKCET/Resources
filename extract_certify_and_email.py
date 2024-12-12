@@ -1,7 +1,6 @@
 import csv
 import os
-from Certificate_Generator.certificate_generator import get_files, get_single_file
-from Email_Sender.send_email import check_csv, sort_csv
+from Utilities.utils import get_files, get_single_file, initialize_necessary_files, check_gmail_app_password, check_body_template, check_csv, sort_csv
 
 
 def extract_spreadsheet(spreadsheet_file_path, tosend_csv_path, wordlist_file_path):
@@ -25,7 +24,7 @@ def extract_spreadsheet(spreadsheet_file_path, tosend_csv_path, wordlist_file_pa
                     
                 print("\'Full Name\' and \'Email\' columns successfully extracted to \'tosend.csv\' file.")
             print("\nSuccessfully extracted the spreadsheet file.\n")
-        except:
+        except PermissionError:
             print("\nFailed to write to \"tosend.csv\" file.\nEnsure that the file is not open on the system.\n")
             exit(1)
 
@@ -39,36 +38,51 @@ if __name__ == "__main__":
         
     EMAIL_SUBJECT = "Subject"
 
+    CERTIFICATE_EMAIL_AUTOMATION_DIR_PATH = os.path.join(os.getcwd(),"Certificate_Email_Automation")
     CERTIFICATE_GENERATOR_DIRECTORY_PATH = os.path.join(os.getcwd(), "Certificate_Generator")
     EMAIL_SENDER_DIRECTORY_PATH = os.path.join(os.getcwd(), "Email_Sender")
-    CERTIFICATE_EMAIL_AUTOMATION_DIR_PATH = os.path.join(os.getcwd(),"Certificate_Email_Automation")
     SPREADSHEET_DIRECTORY_PATH = os.path.join(CERTIFICATE_EMAIL_AUTOMATION_DIR_PATH, "Spreadsheet")
     WORDLIST_DIRECTORY_PATH = os.path.join(CERTIFICATE_EMAIL_AUTOMATION_DIR_PATH, "Wordlist")
+    TEMPLATE_DIRECTORY_PATH = os.path.join(CERTIFICATE_EMAIL_AUTOMATION_DIR_PATH, 'Certificate_Template')
+    
+    BODY_TEMPLATE_FILE_PATH = os.path.join(CERTIFICATE_EMAIL_AUTOMATION_DIR_PATH, "body_template.html")
+    LOG_FILE_PATH = os.path.join(CERTIFICATE_EMAIL_AUTOMATION_DIR_PATH, "email_log.txt")
+    GMAIL_APP_PASSWORD_FILE_PATH  = os.path.join(CERTIFICATE_EMAIL_AUTOMATION_DIR_PATH, "gmail_app_password.txt")
     
     print("\n" + " Certificate_Email_Automation ".center(40, "-"))
     
+    os.makedirs(CERTIFICATE_EMAIL_AUTOMATION_DIR_PATH, exist_ok=True)
     os.makedirs(SPREADSHEET_DIRECTORY_PATH, exist_ok=True)
-    os.makedirs(WORDLIST_DIRECTORY_PATH, exist_ok=True)
+    os.makedirs(TEMPLATE_DIRECTORY_PATH, exist_ok=True)
+    
+    initialize_necessary_files(BODY_TEMPLATE_FILE_PATH, None, GMAIL_APP_PASSWORD_FILE_PATH)
     
     csv_files = get_files(SPREADSHEET_DIRECTORY_PATH, 'CSV')
     spreadsheet_file = get_single_file('Spreadsheet', SPREADSHEET_DIRECTORY_PATH, 'CSV')
     spreadsheet_file_path = os.path.join(SPREADSHEET_DIRECTORY_PATH, spreadsheet_file)
     
+    tosend_csv_path = os.path.join(CERTIFICATE_EMAIL_AUTOMATION_DIR_PATH, "tosend.csv")
+    certificate_script_path = os.path.join(CERTIFICATE_GENERATOR_DIRECTORY_PATH, "certificate_generator.py")
+    email_script_path = os.path.join(EMAIL_SENDER_DIRECTORY_PATH, "send_email.py")
+    
+    passwd = check_gmail_app_password(GMAIL_APP_PASSWORD_FILE_PATH)
+    
+    os.makedirs(WORDLIST_DIRECTORY_PATH, exist_ok=True)
     text_files = get_files(WORDLIST_DIRECTORY_PATH, 'TXT')
     if not text_files:
         with open(os.path.join(WORDLIST_DIRECTORY_PATH, 'wordlist.txt'), 'w') as tosend_csv_file:
             pass
         
     wordlist_file_path = os.path.join(WORDLIST_DIRECTORY_PATH, 'wordlist.txt')
-    tosend_csv_path = os.path.join(CERTIFICATE_EMAIL_AUTOMATION_DIR_PATH, "tosend.csv")
-    certificate_script_path = os.path.join(CERTIFICATE_GENERATOR_DIRECTORY_PATH, "certificate_generator.py")
-    email_script_path = os.path.join(EMAIL_SENDER_DIRECTORY_PATH, "send_email.py")
+    
+    check_body_template(BODY_TEMPLATE_FILE_PATH)
     
     # Open the file and ensure it has the correct contents as needed
     check_csv(spreadsheet_file_path, "Other", "Attendance")
     
     extract_spreadsheet(spreadsheet_file_path, tosend_csv_path, wordlist_file_path)
 
+    sort_csv(spreadsheet_file_path)
     sort_csv(tosend_csv_path)
     
     try:
