@@ -1,3 +1,9 @@
+import os
+import sys
+# Get the parent directory, add it to python path and import the modules
+parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.append(parent_dir)
+from Utilities.utils import read_wordlist, select_font, get_files, get_single_file
 try:
     from PyPDF2 import PdfWriter, PdfReader
     from reportlab.lib.colors import HexColor
@@ -8,190 +14,20 @@ try:
 except ImportError:
     print("\nThis script requires the \'reportlab\' and \'PyPDF2\' modules.\n\nPlease install them using \'pip install reportlab PyPDF2\' and try again.\n")
     exit(1)
-import os
-import sys
 
-
-## ===========================================================================
-### Functions
-
-# Function to get list of files with specific extension within a directory
-def get_files(directory, extension):
-    """
-    Retrieves a list of files with a given extension from the specified directory.
-
-    Args:
-        directory (str): The directory path to search for files.
-        extension (str): The file extension to filter by (e.g., 'pdf', 'txt').
-
-    Returns:
-        list: A list of filenames with the specified extension in the given directory.
-
-    Raises:
-        FileNotFoundError: If the specified directory does not exist.
-    """
-    
-    try:
-        files_list = [file for file in os.listdir(directory) if file.endswith(f'.{extension.lower()}')]
-    except FileNotFoundError as e:
-        print(f"\nError reading template file: {e}")
-        exit(1)
-        
-    return files_list
-
-## --------------------------------------------------------------------------
-# Function to select desired font
-def select_font():
-    """
-    Prompts the user to select a TrueType font from the available fonts in the FONTS_DIRECTORY_PATH.
-
-    Returns:
-        str: The filename of the selected font.
-
-    Raises:
-        SystemExit: If the user input is invalid or an exception occurs.
-    """
-    
-    font_dict = {}
-    truetype_font_files = sorted(get_files(FONTS_DIRECTORY_PATH, 'TTF'))
-    
-    if len(truetype_font_files) < 1:
-        print(f"\nNo fonts available in \"Fonts\" directory.\nPlease add any valid TTF files to Fonts directory and try again\n\nExiting....\n")
-        exit(1)
-
-    print("\nSelect a font for the Names:")
-    for index, font_name in enumerate(truetype_font_files):
-        print(f"  {index + 1}. {font_name[:-4]}")
-        font_dict[index + 1] = font_name
-    try:
-        font = int(input("\n--> "))
-        font_file = font_dict[font]
-    except KeyboardInterrupt:
-        print("\n\nKeyboard Interrupt!\n\nExiting...\n")
-        exit(1)
-    except Exception as e:
-        print("\n\nInvalid Input!\nPlease select correct font index.\n\nExiting...\n")
-        exit(1)
-
-    return font_file
-
-## --------------------------------------------------------------------------
-# Function to get the correct file for certificate genetation
-def get_single_file(directory_name, directory, extension):
-    """
-    Ensures there is a single file with the specified extension in the directory.
-    Exits the program if there are none or multiple files.
-
-    Args:
-        directory_name (str): The name of the directory (for error messages).
-        directory (str): The directory to search for the file.
-        extension (str): The file extension to search for.
-
-    Returns:
-        str: The single file name with the specified extension.
-    """
-    
-    files = get_files(directory, extension)
-    if len(files) == 1:
-        return files[0]
-    elif len(files) > 1:
-        print(f"\nCannot read multiple {extension.upper()} files.")
-    else:
-        print(f"\nFailed to read from {extension.upper()} file.")
-        
-        if extension == "TXT":
-            try:
-                wordlist_file_path = os.path.join(WORDLIST_DIRECTORY_PATH, "wordlist.txt")
-                with open(wordlist_file_path, 'w') as f:
-                    pass
-                print("\nCreating an empty 'wordlist.txt' file in 'Wordlist' directory, add contents to it execute the script again!\n")
-            except IOError as e:
-                print(f"Error creating 'wordlist.txt' file: {e}")
-        
-    print(f"Please provide a single {extension.upper()} file within the \"{directory_name}\" directory.\n")
-    exit(1)
-
-## --------------------------------------------------------------------------
-# Function to sort the provided wordlist file
-def sort_wordlist(file_path):
-    """
-    Sorts the wordlist file contents.
-
-    Args:
-        file_path (str): The path to the wordlist file.
-
-    Returns:
-        list: A list of sorted lines of the file
-    """
-    try:
-        # Read the names from the file
-        with open(file_path, 'r') as file:
-            names = file.readlines()
-    except:
-        print("\nError in reading TXT wordlist!\nPlease ensure that the file is not corrupted.\n\nExiting...\n")
-        exit(1)
-
-    # Strip whitespace and sort the names
-    sorted_names = sorted(name.title().strip() for name in names if name.strip())
-
-    try:
-        with open(file_path, 'w') as output_file:
-            output_file.write('\n'.join(sorted_names))
-    except:
-        print("\nError sorting the wordlist file.\nMake sure that the file isn't open!\n\nExiting...\n")
-        exit(1)
-
-    return sorted_names 
-
-## --------------------------------------------------------------------------
-# Function to read the contents of the file
-def read_wordlist(file_path):
-    """
-    Reads the contents of a wordlist file, returning a list of lines.
-
-    Args:
-        file_path (str): The path to the wordlist file.
-
-    Returns:
-        list: A list of lines read from the file, or an empty list if the file does not exist.
-    """
-    
-    forbidden_chars = set('<>\"?|/\\:*')
-
-    names = sort_wordlist(file_path)
-    
-    # Check each name for forbidden characters
-    line_error = False
-    print()
-    for line_number, line in enumerate(names, start=1):
-        if any(char in forbidden_chars for char in line):
-            print(f"Error: The wordlist file contains forbidden characters on - line {line_number}: ('{line.strip()}').")
-            line_error = True
-                    
-    if line_error:
-        print("Please remove any of the following characters from the wordlist: < > \" ? | / \\ : *\n\nExiting...\n")
-        exit(1)
-            
-    return names
 
 ## --------------------------------------------------------------------------
 # Function to generate the certificates with appropriate names
-def create_certificate(template_file_path, wordlist_file_path):
+def generate_certificates(template_file_path, wordlist_contents):
     """
     Creates certificates by merging names from a wordlist with a template PDF.
 
     Args:
         template_file_path (str): Path to the template PDF file.
         wordlist_file_path (str): Path to the wordlist file containing names.
-    """
-    
-    # Read and print the contents of the file
-    wordlist_contents = read_wordlist(wordlist_file_path)
-    if not wordlist_contents:
-        print("\nEmpty Wordlist file!\nEnsure that Wordlist TXT files has correct Names.\n\nExiting...\n")
-        exit(1)
+    """    
         
-    font_file = select_font()
+    font_file = select_font(FONTS_DIRECTORY_PATH)
     font_file_path = os.path.join(FONTS_DIRECTORY_PATH, font_file)
     
     try:
@@ -277,6 +113,8 @@ def create_certificate(template_file_path, wordlist_file_path):
 
 if __name__ == "__main__":
     
+    print("\n" + " Certificate Generator ".center(35, "-"))
+    
     if os.getcwd()[-9:] == "Resources":
         CERTIFICATE_GENERATOR_DIRECTORY_PATH = os.path.join(os.getcwd(), 'Certificate_Generator')
         ROOT_REPO_PATH = os.getcwd()
@@ -291,18 +129,19 @@ if __name__ == "__main__":
         print("\nPlease change your working directory to the main repository.\n\nExiting...\n")
         exit(1)
     
-    TEMPLATE_DIRECTORY_PATH = os.path.join(CERTIFICATE_GENERATOR_DIRECTORY_PATH, 'Certificate_Template')
-    WORDLIST_DIRECTORY_PATH = os.path.join(CERTIFICATE_GENERATOR_DIRECTORY_PATH, 'Wordlist')
-    TEMPORARY_DIRECTORY_PATH = os.path.join(CERTIFICATE_GENERATOR_DIRECTORY_PATH, 'tmp')
-    OUTPUT_DIRECTORY_PATH = os.path.join(CERTIFICATE_GENERATOR_DIRECTORY_PATH, 'Generated_Certificates')
     
-    if len(sys.argv) > 1 and sys.argv[1] == "extract_certify_and_email_script":
-        TEMPLATE_DIRECTORY_PATH = os.path.join(os.path.join(ROOT_REPO_PATH, "Certificate_Email_Automation"), "Certificate_Template")
-        WORDLIST_DIRECTORY_PATH = os.path.join(os.path.join(ROOT_REPO_PATH, "Certificate_Email_Automation"), "Wordlist")
-        TEMPORARY_DIRECTORY_PATH = os.path.join(os.path.join(ROOT_REPO_PATH, "Certificate_Email_Automation"), "tmp")
-        OUTPUT_DIRECTORY_PATH = os.path.join(os.path.join(ROOT_REPO_PATH, "Certificate_Email_Automation"), "Generated_Certificates")
+    automation_script = len(sys.argv) > 1 and sys.argv[1] == "extract_certify_and_email_script"
+    
+    if automation_script:
+        CERTIFICATE_EMAIL_AUTOMATION_DIRECTORY_PATH = os.path.join(ROOT_REPO_PATH, "Certificate_Email_Automation")
+        DIR_PATH = CERTIFICATE_EMAIL_AUTOMATION_DIRECTORY_PATH
+    else:
+        DIR_PATH = CERTIFICATE_GENERATOR_DIRECTORY_PATH
         
-    print("\n" + " Certificate Generator ".center(35, "-"))
+    TEMPLATE_DIRECTORY_PATH = os.path.join(DIR_PATH, "Certificate_Template")
+    WORDLIST_DIRECTORY_PATH = os.path.join(DIR_PATH, "Wordlist")
+    TEMPORARY_DIRECTORY_PATH = os.path.join(DIR_PATH, "tmp")
+    OUTPUT_DIRECTORY_PATH = os.path.join(DIR_PATH, "Generated_Certificates")
 
     os.makedirs(TEMPLATE_DIRECTORY_PATH, exist_ok=True)
     os.makedirs(WORDLIST_DIRECTORY_PATH, exist_ok=True)
@@ -315,6 +154,9 @@ if __name__ == "__main__":
     text_files = get_files(WORDLIST_DIRECTORY_PATH, 'TXT')
     wordlist_file = get_single_file('Wordlist', WORDLIST_DIRECTORY_PATH, 'TXT')
     wordlist_file_path = os.path.join(WORDLIST_DIRECTORY_PATH, wordlist_file)
+    
+    # Read and print the contents of the file
+    wordlist_contents = read_wordlist(wordlist_file_path)
     
     try:
         certificate_type = int(input(f"\nSelect the type of certificate:\n  1. Membership Certificate\n  2. Event Certificate\n\n--> "))
@@ -340,10 +182,10 @@ if __name__ == "__main__":
         print("\n\nInvalid Input!\nPlease select correct certificate type.\n\nExiting...\n")
         exit(1)
 
-    certificates_dir = create_certificate(template_file_path, wordlist_file_path)
+    certificates_dir = generate_certificates(template_file_path, wordlist_contents)
     
     # Check command-line arguments
-    if len(sys.argv) > 1 and sys.argv[1] == "extract_certify_and_email_script":
+    if automation_script:
         gen_certs_dir_path = os.path.join(os.path.join(ROOT_REPO_PATH, "Certificate_Email_Automation"), "gen_certs_dir_path.txt")
         with open(gen_certs_dir_path, "w") as file:
             file.write(certificates_dir)

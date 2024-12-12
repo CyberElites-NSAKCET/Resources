@@ -1,94 +1,17 @@
-import csv
-import logging
 import os
-import smtplib
 import sys
-from email import encoders
-from email.mime.base import MIMEBase
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
-from socket import gaierror
-
 # Get the parent directory, add it to python path and import the modules
 parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.append(parent_dir)
-from Certificate_Generator.certificate_generator import get_files, get_single_file
 
+import csv
+import logging
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from socket import gaierror
+from Utilities.utils import get_files, get_single_file, add_attachment, read_email_body_template, check_attachments, check_body_template, check_csv, check_gmail_app_password, sort_csv, initialize_necessary_files
 
-# === FUNCTION: READ EMAIL BODY TEMPLATE ===
-def read_email_body_template():
-    """
-    Reads the HTML email body content from a file.
-    """
-    try:
-        with open(BODY_TEMPLATE_FILE_PATH, "r", encoding="utf-8") as file:
-            return file.read()
-    except FileNotFoundError:
-        logging.error(f"Body template file not found: {BODY_TEMPLATE_FILE_PATH}")
-        print(f"Body template file not found: {BODY_TEMPLATE_FILE_PATH}")
-        return ""
-
-
-
-def add_attachment(msg, attachment_path):
-    try:
-        attachment = MIMEBase("application", "octet-stream")
-        with open(attachment_path.strip(), "rb") as file:
-            attachment.set_payload(file.read())
-        encoders.encode_base64(attachment)
-        attachment.add_header(
-            "Content-Disposition",
-            f"attachment; filename={os.path.basename(attachment_path)}",
-        )
-        msg.attach(attachment)
-    except FileNotFoundError:
-        logging.error(f"Attachment not found: {attachment_path}")
-        print(f"Attachment not found: {attachment_path}")
-
-
-
-## --------------------------------------------------------------------------
-# Function to sort the provided wordlist file
-def sort_csv(file_path):
-    """
-    Sorts the csv file contents.
-
-    Args:
-        file_path (str): The path to the csv file.
-
-    Returns:
-        list: A list of sorted lines of the file
-    """
-    # Read, sort, and overwrite the file
-    try:
-        with open(file_path, 'r', newline='', encoding='utf-8') as csvfile:
-            reader = csv.DictReader(csvfile)
-            # Sort rows by the "Full Name" column
-            sorted_rows = sorted(reader, key=lambda row: row["Full Name"])
-            fieldnames = reader.fieldnames  # Preserve the original header order
-    except Exception as e:
-        print(f"\nError in reading TXT wordlist!\nPlease ensure that the file is not corrupted.\n\nExiting...\n")
-        exit(1)
-
-    try:
-        # Overwrite the same file with sorted data
-        with open(file_path, 'w', newline='', encoding='utf-8') as csvfile:
-            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-            writer.writeheader()
-            writer.writerows(sorted_rows)
-
-    except Exception as e:
-        print(f"\nError sorting the csv file.\nMake sure that the file isn't open!\n\nExiting...\n")
-        exit(1)
-    
-    
-    
-def is_empty_row(row):
-    """Check if all values in the row are empty, None, or whitespace."""
-    for key, value in row.items():
-        if isinstance(value, list):
-            row[key] = None
-    return all((value is None or value.strip() == "") for value in row.values())
 
 
 
@@ -160,132 +83,8 @@ def send_email(recipient_email, name, subject, body, attachments):
         logging.error(f"Failed to send email to {recipient_email}: {e}")
         print(f"Failed to send email to {recipient_email}: {e}")
 
-
-
-def check_csv(csv_file_path, attachment_mode, additional_column=None):
-        # Open the CSV file
-    with open(csv_file_path, "r", encoding="utf-8") as csv_file:
-        reader = csv.DictReader(csv_file)
-        try:
-            # Check if the file is not empty and contains rows after the header
-            rows = list(reader)
-        except:
-            print("\nError in reading CSV file.\nEnsure that the file is not corrupted.\n\nExiting...\n")
-            exit(1)
-
-        if not rows or reader.fieldnames is None:  # If rows is empty, only the header or completely empty file
-            print("\nThe CSV file is either empty or only contains the header.\n")
-            exit(1)
-        else:
-            # Filter out rows that are effectively empty
-            csv_file.seek(0)
-            reader = csv.DictReader(csv_file)
-            data_rows = []
-            
-            for row in reader:
-                # Check if the row is empty
-                if not is_empty_row(row):
-                    data_rows.append(row)
-
-            if not data_rows:
-                print("\nThe CSV file has no meaningful data rows (only empty rows or whitespace).\n")
-                exit(1)
-
-        csv_file.seek(0)
-        reader = csv.DictReader(csv_file)
-        # Check if required columns exist
-        required_columns = {"Full Name", "Email"}
-        if additional_column:
-            required_columns.add(additional_column)
-        
-        csv_file.seek(0)
-        reader = csv.DictReader(csv_file)
-        missing_columns = required_columns - set(reader.fieldnames or [])
-        try:
-            if missing_columns:
-                raise ValueError(f"\nMissing required columns in the CSV file: {', '.join(missing_columns)}\n")
-
-            if attachment_mode in {"Respective", "Common"} and "Attachments" not in reader.fieldnames:
-                raise ValueError(f"\nThe 'Attachments' column is required for the selected ATTACHMENT_MODE i.e \'{attachment_mode}\'\n")
-        except Exception as e:
-            print(f"\nError:{e}")
-            exit(1)
-        
-        csv_file.seek(0)
-        reader = csv.DictReader(csv_file)
-        empty_rows = []
-        # Check each row for empty values
-        for row_index, row in enumerate(reader, start=2):
-            if not row.get("Full Name", "") is None and not row.get("Email", "") is None:
-                if row.get("Full Name", "").strip() == "" or row.get("Email", "").strip() == "":
-                    empty_rows.append(row_index)
-
-        if empty_rows:
-            print(f"Full Name or Email not found in Row Index - {empty_rows}")
-            exit(1)
-
-def check_attachments(csv_file_path, attachment_mode):
-    with open(csv_file_path, "r", encoding="utf-8") as csv_file:
-        csv_file.seek(0)  # Reset file pointer
-        reader = csv.DictReader(csv_file)
-        
-        is_missing = False
-        # Read the common attachments if needed
-        if attachment_mode == "Common":
-            first_row = next(reader, None)
-            if first_row:
-                common_attachments = (first_row["Attachments"].split(";"))
-                for attachment in common_attachments:
-                    if not attachment or attachment.strip() == "":
-                        is_missing = True
-                        print(f"\nThe first row attachment is not specified for the selected Attachment Mode \'Common\'")
-                    attachment_path = os.path.join(ATTACHMENTS_DIRECTORY_PATH, attachment)
-                    if not os.path.exists(attachment_path):
-                        is_missing = True
-                        print(f"\nCommon attachment of first row not found - {attachment}")
-                        
-        elif attachment_mode == "Respective":
-            missing_files =[]
-            for row_index, row in enumerate(reader, start=2):
-                if not row.get("Attachments", "") is None:
-                    attachments = row.get("Attachments", "").split(";")
-                    missing_files = [path.strip() for path in attachments if path.strip() and not os.path.exists(os.path.join(ATTACHMENTS_DIRECTORY_PATH,path.strip()))]
-                if missing_files:
-                    is_missing = True                    
-                    print(f"Attachment not found - Row Index \'{row_index}\' - {missing_files}")
-        
-        elif attachment_mode == "Other":
-            for row_index, row in enumerate(reader, start=2):
-                name = row.get("Full Name", "").title().strip()
-                attachments = f"{name.title().strip().replace(' ', '_')}_certificate.pdf"
-                
-                gen_certs_dir_path = os.path.join(CERTIFICATE_EMAIL_AUTOMATION_DIR_PATH, "gen_certs_dir_path.txt")
-                with open(gen_certs_dir_path, "r") as file:
-                    gen_certs_dir_path = file.read()
-                    
-                attachment_path = os.path.join(gen_certs_dir_path, attachments)
-                if not os.path.exists(attachment_path):
-                    is_missing = True                    
-                    print(f"Attachment not found: Row Index \'{row_index}\' - {attachments}")
-                    
-        if is_missing:
-            print("\nExiting...\n")
-            exit(1)
-            
-def check_body_template(body_template_path):
-    with open(body_template_path, "r") as body_file:
-        lines = [line for line in body_file if line.strip()]
-
-    if not lines:
-        print("\nEmpty HTML body template file\n\nExiting...\n")
-        exit(1)
-
-    if all(line.lstrip().startswith("<!--") and line.rstrip().endswith("-->") for line in lines):
-        print("\nEvery line is commented in HTML body template file\nPlease add valid html code.\n\nExiting...\n")
-        exit(1)
-
 # === FUNCTION: SEND BULK EMAILS ===
-def send_bulk_emails(csv_file_path):
+def send_bulk_emails(csv_file_path, body_template_file):
     """
     Reads recipient details from a CSV file and sends emails to all recipients.
 
@@ -296,10 +95,7 @@ def send_bulk_emails(csv_file_path):
     
     try:
         # Read the email body template
-        body_template = read_email_body_template()
-        if not body_template:
-            print("\nEmail body template is empty.\n\nExiting...\n")
-            return
+        body_template = read_email_body_template(body_template_file)
             
         # Open the CSV file
         with open(csv_file_path, "r", encoding="utf-8") as csv_file:
@@ -333,9 +129,10 @@ def send_bulk_emails(csv_file_path):
 
                     # Determine attachments
                     if ATTACHMENT_MODE == "Respective":
-                        attachments = (
-                            row.get("Attachments", "").split(";") if row.get("Attachments", "").strip() else []
-                        )
+                        if row.get("Attachments", ""):
+                            attachments = (row.get("Attachments", "").split(";") if row.get("Attachments", "").strip() else [])
+                        else:
+                            attachments = []
 
                     elif ATTACHMENT_MODE == "Common":
                         attachments = common_attachments
@@ -395,24 +192,18 @@ if __name__ == "__main__":
     # === CONFIGURATION ===
     SMTP_SERVER = "smtp.gmail.com"
     SMTP_PORT = 587
-    SENDER_EMAIL = "raqeeb2709@gmail.com"
+    SENDER_EMAIL = "cyberelites.nsakcet@gmail.com"
     EMAIL_SUBJECT = "Subject"
 
     # === ATTACHMENT MODE ===
     # 'None': No attachments will be sent.
     # 'Common': The first recipient's attachments will be sent to everyone.
     # 'Respective': Attachments from the CSV file will be used for each recipient respectively.
-    ATTACHMENT_MODE = "Common"  # Change this to 'None', 'Common', or 'Respective' (in quotes)
+    ATTACHMENT_MODE = "Respective"  # Change this to 'None', 'Common', or 'Respective' (in quotes)
     
-    ATTACHMENTS_DIRECTORY_PATH = os.path.join(EMAIL_SENDER_DIRECTORY_PATH, "Attachments")
-    SPREADSHEET_DIRECTORY_PATH = os.path.join(EMAIL_SENDER_DIRECTORY_PATH, "Spreadsheet")
-    os.makedirs(SPREADSHEET_DIRECTORY_PATH, exist_ok=True)
+    automation_script = len(sys.argv) > 1 and sys.argv[1] == "extract_certify_and_email_script"
     
-    csv_files = get_files(SPREADSHEET_DIRECTORY_PATH, 'CSV')
-    spreadsheet_file = get_single_file('Spreadsheet', SPREADSHEET_DIRECTORY_PATH, 'CSV')
-    CSV_FILE_PATH = os.path.join(SPREADSHEET_DIRECTORY_PATH, spreadsheet_file)
-    
-    if len(sys.argv) > 1 and sys.argv[1] == "extract_certify_and_email_script":
+    if automation_script:
         CERTIFICATE_EMAIL_AUTOMATION_DIR_PATH = os.path.join(ROOT_REPO_PATH, "Certificate_Email_Automation")
         DIR_PATH = CERTIFICATE_EMAIL_AUTOMATION_DIR_PATH
         CSV_FILE_PATH = os.path.join(CERTIFICATE_EMAIL_AUTOMATION_DIR_PATH, "tosend.csv")
@@ -420,16 +211,34 @@ if __name__ == "__main__":
         EMAIL_SUBJECT == sys.argv[2]
     else:
         DIR_PATH = EMAIL_SENDER_DIRECTORY_PATH
+        ATTACHMENTS_DIRECTORY_PATH = os.path.join(EMAIL_SENDER_DIRECTORY_PATH, "Attachments")
+        SPREADSHEET_DIRECTORY_PATH = os.path.join(EMAIL_SENDER_DIRECTORY_PATH, "Spreadsheet")
+        os.makedirs(ATTACHMENTS_DIRECTORY_PATH, exist_ok=True)
+        os.makedirs(SPREADSHEET_DIRECTORY_PATH, exist_ok=True)
 
     BODY_TEMPLATE_FILE_PATH = os.path.join(DIR_PATH, "body_template.html")
     LOG_FILE_PATH = os.path.join(DIR_PATH, "email_log.txt")
     GMAIL_APP_PASSWORD_FILE_PATH  = os.path.join(DIR_PATH, "gmail_app_password.txt")
     
-    os.makedirs(ATTACHMENTS_DIRECTORY_PATH, exist_ok=True)
-    for file in [BODY_TEMPLATE_FILE_PATH, LOG_FILE_PATH, GMAIL_APP_PASSWORD_FILE_PATH]:
-        if not os.path.exists(file):
-            with open(file, 'w') as f:
-                pass
+    initialize_necessary_files(BODY_TEMPLATE_FILE_PATH, gmail_app_password_file=GMAIL_APP_PASSWORD_FILE_PATH) if not automation_script else initialize_necessary_files(log_file=LOG_FILE_PATH)
+
+    if not automation_script:
+        csv_files = get_files(SPREADSHEET_DIRECTORY_PATH, 'CSV')
+        spreadsheet_file = get_single_file('Spreadsheet', SPREADSHEET_DIRECTORY_PATH, 'CSV')
+        CSV_FILE_PATH = os.path.join(SPREADSHEET_DIRECTORY_PATH, spreadsheet_file)  
+    
+    SENDER_PASSWORD = check_gmail_app_password(GMAIL_APP_PASSWORD_FILE_PATH)
+
+    check_body_template(BODY_TEMPLATE_FILE_PATH)
+    
+    # Check command-line arguments
+    if not automation_script:
+        check_csv(CSV_FILE_PATH, ATTACHMENT_MODE)
+        sort_csv(CSV_FILE_PATH)
+        check_attachments(CSV_FILE_PATH, ATTACHMENTS_DIRECTORY_PATH, ATTACHMENT_MODE)
+        initialize_necessary_files(log_file=LOG_FILE_PATH)
+    else:
+        check_attachments(CSV_FILE_PATH, attachment_mode=ATTACHMENT_MODE,automation_dir_path=CERTIFICATE_EMAIL_AUTOMATION_DIR_PATH)
 
     # === SET UP LOGGING ===
     logging.basicConfig(
@@ -437,40 +246,5 @@ if __name__ == "__main__":
         level=logging.INFO,
         format="%(asctime)s - %(levelname)s - %(message)s",
     )
-    
-    if not os.path.exists(CSV_FILE_PATH):
-        print("\n\'recipients.csv\' file not found!\nCreating and Initializing the file with header row.\n")
-        with open(CSV_FILE_PATH, mode='w', newline='') as csv_file:
-            csv_writer = csv.writer(csv_file)
-            csv_writer.writerow(['Full Name', 'Email', 'Attachments'])  # Write header row
-        print("\nExiting....\n")
-        exit(1)
-    
-    try:
-        # Read the names from the file
-        with open(GMAIL_APP_PASSWORD_FILE_PATH, 'r') as file:
-            lines = file.readlines()
-            password = [line.strip() for line in lines if line.strip()]
-            if len(password) != 1 or password[0].count(" ") != 0:
-                print("\nError in gmail app password!!\nInput password in a single line and without any spaces.\n\nExiting...\n")
-                exit(1)
-        SENDER_PASSWORD = password[0]
-            
-    except FileNotFoundError:
-        print("\nError in reading password file!\nPlease ensure that the file exists at correct location.\n\nExiting...\n")
-        exit(1)
-    except Exception as e:
-        print(f"\nError in reading password file!\n{e}\nPlease ensure that the file is not corrupted.\n\nExiting...\n")
-        exit(1)
-
-    sort_csv(CSV_FILE_PATH)
-    
-    check_body_template(BODY_TEMPLATE_FILE_PATH)
-    
-    # Check command-line arguments
-    if not (len(sys.argv) > 1 and sys.argv[1] == "extract_certify_and_email_script"):
-        check_csv(CSV_FILE_PATH, ATTACHMENT_MODE)
-    
-    check_attachments(CSV_FILE_PATH, ATTACHMENT_MODE)
-                
-    send_bulk_emails(CSV_FILE_PATH)
+                    
+    send_bulk_emails(CSV_FILE_PATH, BODY_TEMPLATE_FILE_PATH)
