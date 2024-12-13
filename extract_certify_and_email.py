@@ -3,6 +3,10 @@ import os
 from Utilities.utils import get_files, get_single_file, initialize_necessary_files, check_gmail_app_password, check_body_template, check_csv, sort_csv
 
 
+## ===========================================================================
+### Functions
+
+# Functiont to extract spreadsheet and write necessary columns to wordlist and csv file
 def extract_spreadsheet(spreadsheet_file_path, tosend_csv_path, wordlist_file_path):
     """
     Extracts specific columns from a spreadsheet file and creates a filtered CSV file 
@@ -56,7 +60,9 @@ def extract_spreadsheet(spreadsheet_file_path, tosend_csv_path, wordlist_file_pa
             exit(1)
 
 
+## ===========================================================================
 # === MAIN ENTRY POINT ===
+
 if __name__ == "__main__":
     """
     Certificate Email Automation Script

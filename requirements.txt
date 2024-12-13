@@ -1,0 +1,4 @@
+pillow
+PyPDF2
+qrcode
+reportlab

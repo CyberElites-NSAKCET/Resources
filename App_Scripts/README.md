@@ -20,7 +20,9 @@ This project automates email responses to Google Form submissions. Using Apps Sc
 2. Add **two required fields** with the exact names:
    - **Full Name**
    - **Email**
+
   ![required questions](assets/images/required-questions.png "required questions")
+
 3. Ensure that in **Form Settings**, the option to "Collect email addresses" is set to **Don’t collect** 
   > This setting avoids duplicating email fields and ensures compatibility with the script.
   
