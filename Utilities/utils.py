@@ -5,20 +5,34 @@ from email import encoders
 from email.mime.base import MIMEBase
 
 
-default_html_code = """<!-- <html> -->
-    <!-- <body> -->
-        <!-- <p><strong>Hello {{name}}</strong>,</p> -->
-        <!-- <p>Here's the link to club website <em><a href="https://cyberelites.org" target="_blank">CyberElites</a></em>. Explore more about us here.</p> -->
-        <!-- <p>Thank you for being part of our community!</p> -->
-        <!-- <p>Best regards,<br><strong>CyberElites Club</strong></p> -->
-    <!-- </body> -->
-<!-- </html> -->
+default_html_code = """<!-- <html>
+    <body>
+        <p><strong>Hello {{name}}</strong>,</p>
+        <p>Here's the link to club website <em><a href="https://cyberelites.org" target="_blank">CyberElites</a></em>. Explore more about us here.</p>
+        <p>Thank you for being part of our community!</p>
+        <p>Best regards,<br><strong>CyberElites Club</strong></p>
+    </body>
+</html> -->
 """
 
 ## ===========================================================================
 ### Functions
 
 def add_attachment(msg, attachment_path):
+    """
+    Attaches a file to an email message.
+
+    Args:
+        msg (email.mime.multipart.MIMEMultipart): The email message object to which the file will be attached.
+        attachment_path (str): The file path of the attachment.
+
+    Returns:
+        None
+
+    Raises:
+        FileNotFoundError: Logs an error if the file is not found and displays an error message.
+    """
+
     try:
         attachment = MIMEBase("application", "octet-stream")
         with open(attachment_path.strip(), "rb") as file:
@@ -34,7 +48,23 @@ def add_attachment(msg, attachment_path):
         print(f"Attachment not found: {attachment_path}")
 
 
-def check_attachments(csv_file_path, attachments_dir_path=None, attachment_mode=None, automation_dir_path = None):
+def check_attachments(csv_file_path, attachments_dir_path=None, attachment_mode=None, automation_dir_path=None):
+    """
+    Validates the presence of attachments as specified in a CSV file based on the selected attachment mode.
+
+    Args:
+        csv_file_path (str): Path to the CSV file containing attachment details.
+        attachments_dir_path (str, optional): Directory path where attachments are stored.
+        attachment_mode (str, optional): Mode of attachment ("Common", "Respective", "Other").
+        automation_dir_path (str, optional): Directory path for automation-specific files.
+
+    Returns:
+        None
+
+    Exits:
+        Exits the program if attachments are missing or improperly specified.
+    """
+
     with open(csv_file_path, "r", encoding="utf-8") as csv_file:
         csv_file.seek(0)  # Reset file pointer
         reader = csv.DictReader(csv_file)
@@ -91,6 +121,19 @@ def check_attachments(csv_file_path, attachments_dir_path=None, attachment_mode=
 
 
 def check_body_template(body_template_path):
+    """
+    Verifies the validity of an HTML email body template file.
+
+    Args:
+        body_template_path (str): Path to the HTML body template file.
+
+    Returns:
+        None
+
+    Exits:
+        Exits the program if the file is empty, commented entirely, or corrupted.
+    """
+
     try:
         with open(body_template_path, "r") as body_file:
             lines = body_file.readlines()
@@ -100,15 +143,34 @@ def check_body_template(body_template_path):
         exit(1)
         
     if not lines:
-        print("\nEmpty HTML body template file\n\nExiting...\n")
+        print("\nEmpty HTML body template file\nPlease enter valid HTML contents and check it's rendering before script execution.\n\nExiting...\n")
         exit(1)
 
     if all(line.lstrip().startswith("<!--") and line.rstrip().endswith("-->") for line in lines):
-        print("\nEvery line is commented in HTML body template file\nPlease add valid html code.\n\nExiting...\n")
+        print("\nEvery line is commented in HTML body template file\nPlease enter valid HTML contents and check it's rendering before script execution.\n\nExiting...\n")
+        exit(1)
+
+    if lines[0].startswith("<!--") and lines[-1].strip().endswith("-->"):
+        print("\nThe body template file has contents commented.\nPlease enter valid HTML contents and check it's rendering before script execution.\n\nExiting...\n")
         exit(1)
         
 
 def check_csv(csv_file_path, attachment_mode, additional_column=None):
+    """
+    Checks the integrity and content of a CSV file, ensuring required columns and data are present.
+
+    Args:
+        csv_file_path (str): Path to the CSV file.
+        attachment_mode (str): The attachment mode ("Respective", "Common").
+        additional_column (str, optional): Additional required column name.
+
+    Returns:
+        None
+
+    Exits:
+        Exits the program if the CSV file is missing required columns, contains invalid rows, or is corrupted.
+    """
+
     # Open the CSV file
     with open(csv_file_path, "r", encoding="utf-8") as csv_file:
         csv_file.seek(0)
@@ -158,6 +220,19 @@ def check_csv(csv_file_path, attachment_mode, additional_column=None):
 
 
 def check_gmail_app_password(gmail_app_password_file):
+    """
+    Validates the Gmail application password stored in a file.
+
+    Args:
+        gmail_app_password_file (str): Path to the file containing the Gmail application password.
+
+    Returns:
+        str: The Gmail application password.
+
+    Exits:
+        Exits the program if the password file is missing, corrupted, or contains invalid data.
+    """
+
     try:
         # Read the names from the file
         with open(gmail_app_password_file, 'r') as file:
@@ -179,17 +254,17 @@ def check_gmail_app_password(gmail_app_password_file):
 # Function to get list of files with specific extension within a directory
 def get_files(directory, extension):
     """
-    Retrieves a list of files with a given extension from the specified directory.
+    Retrieves a list of files with a specified extension from a directory.
 
     Args:
-        directory (str): The directory path to search for files.
-        extension (str): The file extension to filter by (e.g., 'pdf', 'txt').
+        directory (str): Directory path to search for files.
+        extension (str): File extension to filter (e.g., 'pdf', 'txt').
 
     Returns:
-        list: A list of filenames with the specified extension in the given directory.
+        list: List of filenames with the specified extension.
 
     Raises:
-        FileNotFoundError: If the specified directory does not exist.
+        FileNotFoundError: Displays an error message if the directory does not exist.
     """
     
     try:
@@ -205,16 +280,18 @@ def get_files(directory, extension):
 # Function to get the correct file for certificate genetation
 def get_single_file(directory_name, directory, extension):
     """
-    Ensures there is a single file with the specified extension in the directory.
-    Exits the program if there are none or multiple files.
+    Ensures a single file with the specified extension exists in a directory.
 
     Args:
-        directory_name (str): The name of the directory (for error messages).
-        directory (str): The directory to search for the file.
-        extension (str): The file extension to search for.
+        directory_name (str): Name of the directory (used for error messages).
+        directory (str): Path to the directory.
+        extension (str): File extension to search for.
 
     Returns:
-        str: The single file name with the specified extension.
+        str: The filename of the single file with the specified extension.
+
+    Exits:
+        Exits the program if no file or multiple files with the specified extension are found.
     """
     
     files = get_files(directory, extension)
@@ -239,6 +316,18 @@ def get_single_file(directory_name, directory, extension):
 
 
 def initialize_necessary_files(body_template_file=None, log_file=None, gmail_app_password_file=None):
+    """
+    Creates necessary files if they do not already exist.
+
+    Args:
+        body_template_file (str, optional): Path to the HTML body template file.
+        log_file (str, optional): Path to the log file.
+        gmail_app_password_file (str, optional): Path to the Gmail application password file.
+
+    Returns:
+        None
+    """
+
     for file in [body_template_file, log_file, gmail_app_password_file]:
         if file is None:
             continue
@@ -249,19 +338,21 @@ def initialize_necessary_files(body_template_file=None, log_file=None, gmail_app
                     f.write(default_html_code)
 
 
-def is_empty_row(row):
-    """Check if all values in the row are empty, None, or whitespace."""
-    for key, value in row.items():
-        if isinstance(value, list):
-            row[key] = None
-    return all((value is None or value.strip() == "") for value in row.values())
-
-
 # === FUNCTION: READ EMAIL BODY TEMPLATE ===
 def read_email_body_template(body_template_file):
     """
-    Reads the HTML email body content from a file.
+    Reads the content of an HTML email body template file.
+
+    Args:
+        body_template_file (str): Path to the HTML body template file.
+
+    Returns:
+        str: The content of the HTML body template.
+
+    Exits:
+        Exits the program if the file is corrupted or cannot be read.
     """
+
     try:
         with open(body_template_file, "r", encoding="utf-8") as file:
             return file.read()
@@ -275,13 +366,16 @@ def read_email_body_template(body_template_file):
 # Function to read the contents of the file
 def read_wordlist(file_path):
     """
-    Reads the contents of a wordlist file, returning a list of lines.
+    Reads and validates the content of a wordlist file.
 
     Args:
-        file_path (str): The path to the wordlist file.
+        file_path (str): Path to the wordlist file.
 
     Returns:
-        list: A list of lines read from the file, or an empty list if the file does not exist.
+        list: List of validated and sorted lines from the wordlist.
+
+    Exits:
+        Exits the program if the wordlist contains invalid characters or is empty.
     """
     
     forbidden_chars = set('<>\"?|/\\:*')
@@ -311,13 +405,16 @@ def read_wordlist(file_path):
 # Function to select desired font
 def select_font(fonts_directory_path):
     """
-    Prompts the user to select a TrueType font from the available fonts in the FONTS_DIRECTORY_PATH.
+    Prompts the user to select a TrueType font from a directory.
+
+    Args:
+        fonts_directory_path (str): Directory path containing font files.
 
     Returns:
         str: The filename of the selected font.
 
-    Raises:
-        SystemExit: If the user input is invalid or an exception occurs.
+    Exits:
+        Exits the program if no fonts are available or the user input is invalid.
     """
     
     font_dict = {}
@@ -348,14 +445,18 @@ def select_font(fonts_directory_path):
 # Function to sort the provided wordlist file
 def sort_csv(file_path):
     """
-    Sorts the csv file contents.
+    Sorts the content of a CSV file based on the second column (or alphabetically if not applicable).
 
     Args:
-        file_path (str): The path to the csv file.
+        file_path (str): Path to the CSV file.
 
     Returns:
-        list: A list of sorted lines of the file
+        None
+
+    Exits:
+        Exits the program if the file is empty, corrupted, or cannot be sorted.
     """
+
     try:
         # Read the file and split into lines
         with open(file_path, 'r', encoding='utf-8') as txt_file:
@@ -395,14 +496,18 @@ def sort_csv(file_path):
 # Function to sort the provided wordlist file
 def sort_wordlist(file_path):
     """
-    Sorts the wordlist file contents.
+    Sorts the content of a wordlist file alphabetically.
 
     Args:
-        file_path (str): The path to the wordlist file.
+        file_path (str): Path to the wordlist file.
 
     Returns:
-        list: A list of sorted lines of the file
+        list: List of sorted lines from the wordlist.
+
+    Exits:
+        Exits the program if the file is empty, corrupted, or cannot be sorted.
     """
+
     try:
         # Read the names from the file
         with open(file_path, 'r') as file:
@@ -422,7 +527,3 @@ def sort_wordlist(file_path):
         exit(1)
 
     return sorted_names 
-
-
-
-

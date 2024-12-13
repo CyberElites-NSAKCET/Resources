@@ -4,6 +4,33 @@ from Utilities.utils import get_files, get_single_file, initialize_necessary_fil
 
 
 def extract_spreadsheet(spreadsheet_file_path, tosend_csv_path, wordlist_file_path):
+    """
+    Extracts specific columns from a spreadsheet file and creates a filtered CSV file 
+    and a wordlist text file for further processing.
+
+    Args:
+        spreadsheet_file_path (str): Path to the input spreadsheet CSV file. 
+                                     The file must have "Full Name", "Email", and "Attendance" columns.
+        tosend_csv_path (str): Path to save the output CSV file containing "Full Name" and "Email" columns.
+        wordlist_file_path (str): Path to save the text file containing "Full Name" entries.
+
+    Workflow:
+        - Reads the spreadsheet file.
+        - Filters rows where the "Attendance" column is marked as "TRUE" (case-insensitive).
+        - Extracts "Full Name" and "Email" columns and writes them to the output CSV file.
+        - Writes "Full Name" values to the wordlist text file.
+
+    Raises:
+        PermissionError: If the output CSV file is open or locked by another process.
+        KeyError: If required columns ("Full Name", "Email", or "Attendance") are missing in the spreadsheet.
+        Exception: For any other unforeseen errors.
+
+    Prints:
+        - Success messages upon successful file creation.
+        - Error messages if file writing fails.
+
+    """
+
     # Process the file
     with open(spreadsheet_file_path, mode='r', encoding="utf-8") as sheet_csv_file:
         reader = csv.DictReader(sheet_csv_file)
@@ -31,7 +58,49 @@ def extract_spreadsheet(spreadsheet_file_path, tosend_csv_path, wordlist_file_pa
 
 # === MAIN ENTRY POINT ===
 if __name__ == "__main__":
-    
+    """
+    Certificate Email Automation Script
+
+    This script automates the process of:
+    1. Extracting recipient details from a spreadsheet.
+    2. Generating certificates for attendees.
+    3. Sending certificates via email with personalized messages.
+
+    Workflow:
+        - Ensures necessary directories and files are created and initialized.
+        - Reads the spreadsheet file to extract attendee details based on "Attendance".
+        - Generates certificates for attendees marked as present.
+        - Sends emails with the generated certificates as attachments.
+
+    Environment Setup:
+        - `Certificate_Email_Automation` directory contains all necessary files, including:
+            - `Spreadsheet`: Directory for input CSV files containing attendee details.
+            - `Certificate_Template`: Directory for certificate templates.
+            - `Wordlist`: Directory for wordlists used in certificate generation.
+        - Initializes a Gmail App Password for secure email authentication.
+
+    Key Components:
+        - **Spreadsheet Extraction**:
+            Extracts "Full Name" and "Email" columns for attendees marked as present.
+        - **Certificate Generation**:
+            Calls `certificate_generator.py` to create certificates.
+        - **Email Sending**:
+            Calls `send_email.py` to send personalized emails with certificates.
+
+    Raises:
+        - KeyError: If required columns are missing in the spreadsheet.
+        - FileNotFoundError: If the input spreadsheet file is not found.
+        - PermissionError: If the output files are locked or inaccessible.
+        - Exception: For other unforeseen errors during execution.
+
+    Dependencies:
+        - `Utilities.utils` module for common file handling and validation functions.
+        - External scripts: `certificate_generator.py` and `send_email.py`.
+
+    Logs:
+        - Actions and errors are logged in the `email_log.txt` file for review.
+    """
+
     if not os.getcwd()[-9:] == "Resources":
         print("\nPlease change your working directory to the main repository.\n\nExiting...\n")
         exit(1)

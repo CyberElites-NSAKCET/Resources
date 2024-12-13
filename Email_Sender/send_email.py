@@ -13,21 +13,28 @@ from socket import gaierror
 from Utilities.utils import get_files, get_single_file, add_attachment, read_email_body_template, check_attachments, check_body_template, check_csv, check_gmail_app_password, sort_csv, initialize_necessary_files
 
 
-
-
 # === FUNCTION: SEND EMAIL ===
 def send_email(recipient_email, name, subject, body, attachments):
     """
-    Sends an email to a single recipient with optional CC and attachments.
+    Sends an email to a single recipient with optional attachments.
 
     Args:
-        recipient_email (str): Primary recipient's email address.
-        name (str): Recipient's name for personalization.
-        additional_recipients (list): List of CC recipients' email addresses.
-        subject (str): Subject of the email.
-        body (str): HTML content of the email body.
-        attachments (list): List of file paths to be attached.
+        recipient_email (str): The primary recipient's email address.
+        name (str): The recipient's name for email personalization.
+        subject (str): The subject of the email.
+        body (str): The HTML content of the email body.
+        attachments (list): List of file paths for attachments to include in the email.
+
+    Raises:
+        smtplib.SMTPAuthenticationError: If authentication with the SMTP server fails.
+        socket.gaierror: If there is an issue with the network connection.
+        Exception: For other unforeseen errors during the email sending process.
+
+    Logs:
+        - Successful email delivery with recipient's email.
+        - Errors encountered while sending the email.
     """
+
     try:
         # Set up the email
         msg = MIMEMultipart()
@@ -83,14 +90,30 @@ def send_email(recipient_email, name, subject, body, attachments):
         logging.error(f"Failed to send email to {recipient_email}: {e}")
         print(f"Failed to send email to {recipient_email}: {e}")
 
+
 # === FUNCTION: SEND BULK EMAILS ===
 def send_bulk_emails(csv_file_path, body_template_file):
     """
-    Reads recipient details from a CSV file and sends emails to all recipients.
+    Sends bulk emails to recipients by reading their details from a CSV file.
 
     Args:
         csv_file_path (str): Path to the CSV file containing recipient details.
+                             The file should include columns for "Email", "Full Name",
+                             and optionally "Attachments" (if attachments are needed).
+        body_template_file (str): Path to the HTML file used as the email body template.
+                                  The template should include placeholders for customization
+                                  (e.g., "{{name}}").
+
+    Raises:
+        FileNotFoundError: If the specified CSV file does not exist.
+        ValueError: If the CSV file format is invalid or lacks required fields.
+        Exception: For other unforeseen errors during the email sending process.
+
+    Logs:
+        - Successful email delivery for each recipient.
+        - Errors encountered while processing individual rows of the CSV file.
     """
+
     global ATTACHMENT_MODE
     
     try:
@@ -173,7 +196,42 @@ def send_bulk_emails(csv_file_path, body_template_file):
 
 # === MAIN ENTRY POINT ===
 if __name__ == "__main__":
-    
+    """
+    Main entry point for the email automation script.
+
+    This script supports sending emails with the following features:
+        - Bulk emails with recipient details fetched from a CSV file.
+        - Customizable email body using an HTML template.
+        - Optional attachments for each email based on different modes:
+            - 'None': No attachments.
+            - 'Common': The first recipient's attachments are sent to all recipients.
+            - 'Respective': Attachments are determined on a per-recipient basis from the CSV file.
+            - 'Other': Attachments specific to certificates generated in the same workflow.(Used by automation script)
+
+    Automation Mode:
+        - Supports integration with a certificate generation module for automated certificate distribution.
+        - Reads configuration and certificate paths from specific directories.
+
+    Environment:
+        - Configures necessary directories for logs, attachments, and email body templates.
+        - Initializes Gmail App Password for secure authentication.
+
+    Setup:
+        - Ensure Gmail App Password is stored securely in the specified file.
+        - Prepare CSV files, attachments, and email body templates before running.
+
+    Logs:
+        - Detailed logs of all email operations are saved in the log file.
+        - Errors are logged with corresponding recipient details and issues.
+
+    Raises:
+        - FileNotFoundError: If required files (CSV, HTML, or attachments) are missing.
+        - ValueError: If invalid data is found in the CSV file.
+        - smtplib.SMTPAuthenticationError: If Gmail App Password is incorrect.
+        - socket.gaierror: For network connectivity issues.
+        - Exception: For other unforeseen issues during email operations.
+    """
+
     print("\n" + " Email Sender ".center(24, "-"))
     
     if os.getcwd()[-9:] == "Resources":
