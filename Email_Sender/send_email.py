@@ -13,6 +13,9 @@ from socket import gaierror
 from Utilities.utils import get_files, get_single_file, add_attachment, read_email_body_template, check_attachments, check_body_template, check_csv, check_gmail_app_password, sort_csv, initialize_necessary_files
 
 
+## ===========================================================================
+### Functions
+
 # === FUNCTION: SEND EMAIL ===
 def send_email(recipient_email, name, subject, body, attachments):
     """
@@ -91,6 +94,7 @@ def send_email(recipient_email, name, subject, body, attachments):
         print(f"Failed to send email to {recipient_email}: {e}")
 
 
+## --------------------------------------------------------------------------
 # === FUNCTION: SEND BULK EMAILS ===
 def send_bulk_emails(csv_file_path, body_template_file):
     """
@@ -194,7 +198,9 @@ def send_bulk_emails(csv_file_path, body_template_file):
         print(f"Unexpected error: {e}")
 
 
+## ===========================================================================
 # === MAIN ENTRY POINT ===
+
 if __name__ == "__main__":
     """
     Main entry point for the email automation script.
@@ -257,9 +263,13 @@ if __name__ == "__main__":
     # 'None': No attachments will be sent.
     # 'Common': The first recipient's attachments will be sent to everyone.
     # 'Respective': Attachments from the CSV file will be used for each recipient respectively.
-    ATTACHMENT_MODE = "Respective"  # Change this to 'None', 'Common', or 'Respective' (in quotes)
+    ATTACHMENT_MODE = "None"  # Change this to 'None', 'Common', or 'Respective' (in quotes)
     
     automation_script = len(sys.argv) > 1 and sys.argv[1] == "extract_certify_and_email_script"
+    
+    if not automation_script and ATTACHMENT_MODE == "Other":
+        print("\nInvalid Attachment mode specified for the Email_Sender code.\nThis mode is explicitly for the automation script\n\nPlease select from \"None\", \"Common\" or \"Respective\"\n\nExiting..\n")
+        exit(1)
     
     if automation_script:
         CERTIFICATE_EMAIL_AUTOMATION_DIR_PATH = os.path.join(ROOT_REPO_PATH, "Certificate_Email_Automation")

@@ -18,6 +18,8 @@ default_html_code = """<!-- <html>
 ## ===========================================================================
 ### Functions
 
+## --------------------------------------------------------------------------
+# Function to add attachments to the message object
 def add_attachment(msg, attachment_path):
     """
     Attaches a file to an email message.
@@ -48,6 +50,8 @@ def add_attachment(msg, attachment_path):
         print(f"Attachment not found: {attachment_path}")
 
 
+## --------------------------------------------------------------------------
+# Function to check the attachment's presence
 def check_attachments(csv_file_path, attachments_dir_path=None, attachment_mode=None, automation_dir_path=None):
     """
     Validates the presence of attachments as specified in a CSV file based on the selected attachment mode.
@@ -120,6 +124,8 @@ def check_attachments(csv_file_path, attachments_dir_path=None, attachment_mode=
             exit(1)
 
 
+## --------------------------------------------------------------------------
+# Function to check the html body file contents
 def check_body_template(body_template_path):
     """
     Verifies the validity of an HTML email body template file.
@@ -155,6 +161,8 @@ def check_body_template(body_template_path):
         exit(1)
         
 
+## --------------------------------------------------------------------------
+# Function to check the csv file contents
 def check_csv(csv_file_path, attachment_mode, additional_column=None):
     """
     Checks the integrity and content of a CSV file, ensuring required columns and data are present.
@@ -219,6 +227,8 @@ def check_csv(csv_file_path, attachment_mode, additional_column=None):
             exit(1)
 
 
+## --------------------------------------------------------------------------
+# Function to check gmail app password file
 def check_gmail_app_password(gmail_app_password_file):
     """
     Validates the Gmail application password stored in a file.
@@ -250,7 +260,7 @@ def check_gmail_app_password(gmail_app_password_file):
         print(f"\nError in reading password file!\n{e}\nPlease ensure that the file is not corrupted.\n\nExiting...\n")
         exit(1)
 
-
+## --------------------------------------------------------------------------
 # Function to get list of files with specific extension within a directory
 def get_files(directory, extension):
     """
@@ -277,7 +287,7 @@ def get_files(directory, extension):
 
 
 ## --------------------------------------------------------------------------
-# Function to get the correct file for certificate genetation
+# Function to get a single file form a directory with the specified extension
 def get_single_file(directory_name, directory, extension):
     """
     Ensures a single file with the specified extension exists in a directory.
@@ -315,6 +325,8 @@ def get_single_file(directory_name, directory, extension):
     exit(1)
 
 
+## --------------------------------------------------------------------------
+# Function to initialize files
 def initialize_necessary_files(body_template_file=None, log_file=None, gmail_app_password_file=None):
     """
     Creates necessary files if they do not already exist.
@@ -338,6 +350,7 @@ def initialize_necessary_files(body_template_file=None, log_file=None, gmail_app
                     f.write(default_html_code)
 
 
+## --------------------------------------------------------------------------
 # === FUNCTION: READ EMAIL BODY TEMPLATE ===
 def read_email_body_template(body_template_file):
     """
@@ -442,7 +455,7 @@ def select_font(fonts_directory_path):
 
 
 ## --------------------------------------------------------------------------
-# Function to sort the provided wordlist file
+# Function to sort the provided csv file
 def sort_csv(file_path):
     """
     Sorts the content of a CSV file based on the second column (or alphabetically if not applicable).
@@ -491,7 +504,6 @@ def sort_csv(file_path):
         exit(1)
 
     
-
 ## --------------------------------------------------------------------------
 # Function to sort the provided wordlist file
 def sort_wordlist(file_path):
