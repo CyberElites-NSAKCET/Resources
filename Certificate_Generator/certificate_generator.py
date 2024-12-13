@@ -20,12 +20,19 @@ except ImportError:
 # Function to generate the certificates with appropriate names
 def generate_certificates(template_file_path, wordlist_contents):
     """
-    Creates certificates by merging names from a wordlist with a template PDF.
+    Generates personalized certificates by combining a template PDF with names from a wordlist.
 
     Args:
         template_file_path (str): Path to the template PDF file.
-        wordlist_file_path (str): Path to the wordlist file containing names.
-    """    
+        wordlist_contents (list): List of names to be included on the certificates.
+
+    Returns:
+        str: Path to the directory containing the generated certificates.
+
+    Raises:
+        KeyboardInterrupt: If the user interrupts the process.
+        Exception: For any error occurring during certificate generation.
+    """   
         
     font_file = select_font(FONTS_DIRECTORY_PATH)
     font_file_path = os.path.join(FONTS_DIRECTORY_PATH, font_file)
@@ -112,6 +119,15 @@ def generate_certificates(template_file_path, wordlist_contents):
 #
 
 if __name__ == "__main__":
+    """
+    Main entry point for the script to generate certificates.
+
+    Workflow:
+        1. Sets up directory paths for templates, wordlists, and fonts.
+        2. Reads user inputs to select certificate type and customize parameters.
+        3. Calls `generate_certificates` function to create personalized certificates.
+        4. Handles automation script integration if specified in the command-line arguments.
+    """
     
     print("\n" + " Certificate Generator ".center(35, "-"))
     

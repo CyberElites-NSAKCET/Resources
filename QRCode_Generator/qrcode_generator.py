@@ -1,3 +1,10 @@
+import os
+import re
+import sys
+# Get the parent directory, add it to python path and import the modules
+parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.append(parent_dir)
+from Utilities.utils import select_font
 try:
     import qrcode
     from PIL import Image, ImageDraw, ImageFont, ImageOps
@@ -7,8 +14,6 @@ try:
 except ImportError:
     print("This script requires the 'qrcode' and 'pillow' modules.\nPlease install them using 'pip install qrcode pillow' and try again.")
     exit(1)
-import os
-import re
 
 
 ## ===========================================================================
@@ -18,13 +23,15 @@ import re
 def get_text():
     """
     Prompt the user to input the text to encode in the QR code.
-    Allows multiple lines of input. Ends when the user presses Enter twice.
+
+    The function supports multi-line input. Input ends when the user presses
+    Enter twice consecutively. If no text is provided, the program exits.
 
     Returns:
-        str: The complete input text to encode in the QR code.
+        str: The concatenated multi-line input text to encode in the QR code.
 
     Raises:
-        SystemExit: If no input is provided.
+        SystemExit: If no text is provided or the user interrupts the input process.
     """
 
     print("\nEnter the text to encode as QR (Press Enter \'Twice\' to finish):\n")
@@ -57,68 +64,15 @@ def get_text():
 
     return input_text
 
-## --------------------------------------------------------------------------
-# Function to get list of files with specific extension within a directory
-def get_files(directory, extension):
-    """
-    Retrieve all files with the specified extension from a given directory.
-
-    Args:
-        directory (str): Path to the directory.
-        extension (str): File extension to filter by (e.g., 'pdf', 'txt').
-
-    Returns:
-        list: List of filenames with the specified extension.
-
-    Raises:
-        FileNotFoundError: If the directory does not exist.
-    """
-    
-    files_list = [file for file in os.listdir(directory) if file.endswith(f'.{extension.lower()}')]
-    return files_list
-
-## --------------------------------------------------------------------------
-# Function to select desired font
-def select_font():
-    """
-    Prompt the user to select a TrueType font (TTF) from available fonts in the specified directory.
-
-    Returns:
-        str: The filename of the selected font.
-
-    Raises:
-        SystemExit: If no fonts are available or the input is invalid.
-    """
-    
-    font_dict = {}
-    truetype_font_files = sorted(get_files(FONTS_DIRECTORY_PATH, 'TTF'))
-    
-    if len(truetype_font_files) == 0:
-        print(f"\nNo fonts available in \"Fonts\" directory.\nPlease add any TTF files to Fonts directory and try again.\n\nExiting....\n")
-        exit(1)
-
-    print("\nSelect a font for the QR title:")
-    for index, font_name in enumerate(truetype_font_files):
-        print(f"  {index + 1}. {font_name[:-4]}")
-        font_dict[index + 1] = font_name
-        
-    try:
-        font = int(input("\n--> "))
-        font_file = font_dict[font]
-    except KeyboardInterrupt:
-        print("\n\nKeyboard Interrupt!\n\nExiting....\n")
-        exit(1)
-    except:
-        print("\nInvalid Input! Please select correct font index.\n\nExiting...\n")
-        exit(1)
-
-    return font_file
 
 ## --------------------------------------------------------------------------
 # Function to generate QR
 def standard_qr_gen(input_text, error_correction, bg_color):
     """
-    Generate a standard QR code image from the given text.
+    Generate a standard QR code image.
+
+    This function creates a QR code with customizable error correction levels and background colors.
+    The generated QR code is resized for consistency.
 
     Args:
         input_text (str): Text to encode in the QR code.
@@ -151,12 +105,15 @@ def standard_qr_gen(input_text, error_correction, bg_color):
 
     return qr_image
 
+
 ## --------------------------------------------------------------------------
 # Function to generate dotted QR
-
 def dots_qr_gen(input_text, error_correction, bg_color):
     """
-    Generate a QR code image with a dotted module style.
+    Generate a QR code with a dotted module style.
+
+    This function creates a visually styled QR code with circular dots for modules
+    and customizable background colors.
 
     Args:
         input_text (str): Text to encode in the QR code.
@@ -164,7 +121,7 @@ def dots_qr_gen(input_text, error_correction, bg_color):
         bg_color (str): Background color of the QR code ('white' or 'black').
 
     Returns:
-        PIL.Image.Image: The generated QR code image with a dotted style.
+        PIL.Image.Image: The styled QR code image.
     """
 
     # Create a QR Code instance
@@ -194,19 +151,22 @@ def dots_qr_gen(input_text, error_correction, bg_color):
 
     return qr_image
 
+
 ## --------------------------------------------------------------------------
 # Function to get QR Image extension type
 def extension_menu():
     """
-    Prompt the user to select an image file extension for the QR code.
+    Prompt the user to select the file format for the QR code image.
+
+    Displays a menu of options for image file extensions. Returns the selected
+    extension and corresponding format.
 
     Returns:
-        tuple: (file extension, image format).
-            - file extension (str): Selected file extension (e.g., 'png', 'jpg').
-            - image format (str): Corresponding image format for the extension (e.g., 'PNG', 'JPEG').
+        tuple: A tuple (extension, format) representing the selected file extension 
+               (e.g., 'png', 'jpg') and the image format (e.g., 'PNG', 'JPEG').
 
     Raises:
-        SystemExit: If an invalid extension is selected.
+        SystemExit: If an invalid option is selected or the user interrupts the process.
     """
     
     try:
@@ -249,21 +209,25 @@ def extension_menu():
     
     return extension, image_format
 
+
 ## --------------------------------------------------------------------------
 # Function to add an image to the center of the QR Code
 def add_center_image(qr_image, bg_color):
     """
-    Add a center image to the QR code.
+    Overlay a center image on the QR code.
+
+    Adds a predefined image to the center of the QR code, dynamically scaling it
+    relative to the size of the QR code.
 
     Args:
         qr_image (PIL.Image.Image): The QR code image.
         bg_color (str): Background color of the QR code ('white' or 'black').
 
     Returns:
-        PIL.Image.Image: The QR code image with a center image added.
+        PIL.Image.Image: The QR code image with the center image overlaid.
 
     Raises:
-        SystemExit: If an error occurs when adding the center image.
+        Exception: If there is an error in adding the center image.
     """
     
     # try:
@@ -297,22 +261,26 @@ def add_center_image(qr_image, bg_color):
     
     return qr_image
 
+
 ## --------------------------------------------------------------------------
 # Function to add a title to the QR Code
 def add_title(qr_image, title, bg_color):
     """
-    Add a title above the QR code image.
+    Add a title above the QR code.
+
+    Creates a new image with additional space at the top for a title, which is
+    centered and styled with a specified font and color.
 
     Args:
         qr_image (PIL.Image.Image): The QR code image.
-        title (str): Text of the title to add.
+        title (str): The text to display as the title.
         bg_color (str): Background color of the QR code ('white' or 'black').
 
     Returns:
         PIL.Image.Image: The QR code image with the title added.
     """
     
-    font_file = select_font()
+    font_file = select_font(FONTS_DIRECTORY_PATH)
     FONT_SIZE = 60
     font_file_path = os.path.join(FONTS_DIRECTORY_PATH, font_file)
     
@@ -341,24 +309,25 @@ def add_title(qr_image, title, bg_color):
     
     return new_image
 
+
 ## --------------------------------------------------------------------------
 # Function manage all QR creation tasks
 def generate_qrcode():
     """
-    Manage the entire QR code generation process.
+    Manage the entire QR code creation process.
 
-    Steps:
-        - Get input text for the QR code.
-        - Select the error correction level and QR style.
-        - Generate the QR code image.
-        - Optionally add a center image and/or title.
-        - Save the final QR code image to a file.
+    This function handles:
+    - Collecting input text from the user.
+    - Selecting error correction levels and QR styles.
+    - Generating the QR code with optional styling.
+    - Adding an optional center image and title.
+    - Saving the QR code image to a file with the selected format.
 
     Returns:
-        str: Path to the saved QR code image.
+        str: The path to the saved QR code image.
 
     Raises:
-        SystemExit: If any step of the QR code generation process fails.
+        SystemExit: If any step in the process encounters an error or the user interrupts.
     """
     
     # Get input text from the user
@@ -454,6 +423,23 @@ def generate_qrcode():
 #
 
 if __name__ == "__main__":
+    """
+    Main entry point for the QR Code Generator script.
+
+    This script generates a QR code based on user input and offers various customization options:
+    - Supports standard and dotted QR code styles.
+    - Allows customization of error correction levels, background colors, and file formats.
+    - Optionally overlays a center image and/or a title on the QR code.
+    - Saves the final QR code image to a user-specified file.
+
+    The script expects to be run from the root of the repository or within specific directories 
+    (Resources or QRCode_Generator). Paths are adjusted dynamically to locate resources like 
+    fonts, logos, and output directories.
+
+    Raises:
+        SystemExit: If an error occurs during the QR code generation process or if 
+                    invalid input is provided.
+    """
 
     FORBIDDEN_CHARS = r'[\/:*?"<>|]'
     

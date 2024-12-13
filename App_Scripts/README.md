@@ -17,10 +17,15 @@ This project automates email responses to Google Form submissions. Using Apps Sc
 
 ### Design the Form
 1. Open [Google Forms](https://forms.google.com) and create your form.
-2. Include a question to collect the **user's email address** and mark it as required.
-
-### Enable Response Collection
-1. In the form settings, enable **"Collect email addresses"** to ensure emails are recorded.
+2. Add **two required fields** with the exact names:
+   - **Full Name**
+   - **Email**
+  ![required questions](assets/images/required-questions.png "required questions")
+3. Ensure that in **Form Settings**, the option to "Collect email addresses" is set to **Don’t collect** 
+  > This setting avoids duplicating email fields and ensures compatibility with the script.
+  
+  ![response settings](assets/images/response-settings(1).png "response settings")  
+  ![response settings](assets/images/response-settings(2).png "response settings")
 
 ---
 
@@ -66,4 +71,3 @@ This project automates email responses to Google Form submissions. Using Apps Sc
 - **Error Logging**: Errors are logged to a sheet named "Error Log Sheet" for debugging.
 - **Email Index**: Ensure `e.values[1]` corresponds to the email column in your sheet.
 - **Gmail Limits**: Free Gmail accounts are limited to 100 emails per day.
-
