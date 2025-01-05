@@ -10,7 +10,7 @@ import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from socket import gaierror
-from Utilities.utils import add_attachment, check_attachments, check_body_template, check_csv, check_gmail_app_password, clean_csv_fieldnames, get_files, get_single_file, initialize_necessary_files, read_email_body_template, sort_csv
+from Utilities.utils import add_attachment, check_attachments, check_body_template, check_csv, check_gmail_app_password, clean_csv_fieldnames, get_files, get_single_file, initialize_necessary_files, load_config, read_email_body_template, sort_csv
 
 
 ## ===========================================================================
@@ -86,7 +86,7 @@ def send_email(recipient_email, name, subject, body, attachments):
         print(f"Incorrect Gmail App Password!\nAuthentication Failed for \'{SENDER_EMAIL}\' with provided password.\n")
         exit(1)   
     except gaierror as e:
-        print("Failed to send Emails....\nCheck your Internet connection\n")
+        print("Failed to send Emails....\nCheck your Internet connection\nEmails not sent form recipient name: \'{name}\'\n\nExiting...\n")
         exit(1)
     except Exception as e:
         # Log failure
@@ -252,18 +252,18 @@ if __name__ == "__main__":
         print("\nPlease change your working directory to the main repository.\n\nExiting...\n")
         exit(1)
     
-    
+    config = load_config()
     # === CONFIGURATION ===
-    SMTP_SERVER = "smtp.gmail.com"
-    SMTP_PORT = 587
-    SENDER_EMAIL = "cyberelites.nsakcet@gmail.com"
-    EMAIL_SUBJECT = "Subject"
+    SMTP_SERVER = config.get("smtp_server")
+    SMTP_PORT = config.get("smtp_port")
+    SENDER_EMAIL = config.get("sender_email")
+    EMAIL_SUBJECT = config.get("email_subject")
 
     # === ATTACHMENT MODE ===
     # 'None': No attachments will be sent.
     # 'Common': The first recipient's attachments will be sent to everyone.
     # 'Respective': Attachments from the CSV file will be used for each recipient respectively.
-    ATTACHMENT_MODE = "None"  # Change this to 'None', 'Common', or 'Respective' (in quotes)
+    ATTACHMENT_MODE = config.get("attachment_mode")  # Change this to 'None', 'Common', or 'Respective' (in quotes)
     
     automation_script = len(sys.argv) > 1 and sys.argv[1] == "extract_certify_and_email_script"
     
@@ -276,7 +276,6 @@ if __name__ == "__main__":
         DIR_PATH = CERTIFICATE_EMAIL_AUTOMATION_DIR_PATH
         CSV_FILE_PATH = os.path.join(CERTIFICATE_EMAIL_AUTOMATION_DIR_PATH, "tosend.csv")
         ATTACHMENT_MODE = "Other"
-        EMAIL_SUBJECT == sys.argv[2]
     else:
         DIR_PATH = EMAIL_SENDER_DIRECTORY_PATH
         ATTACHMENTS_DIRECTORY_PATH = os.path.join(EMAIL_SENDER_DIRECTORY_PATH, "Attachments")
@@ -304,8 +303,8 @@ if __name__ == "__main__":
         check_attachments(CSV_FILE_PATH, attachment_mode=ATTACHMENT_MODE,automation_dir_path=CERTIFICATE_EMAIL_AUTOMATION_DIR_PATH)
     else:
         clean_csv_fieldnames(CSV_FILE_PATH)
-        check_csv(CSV_FILE_PATH, ATTACHMENT_MODE)
         sort_csv(CSV_FILE_PATH)
+        check_csv(CSV_FILE_PATH, ATTACHMENT_MODE)
         check_attachments(CSV_FILE_PATH, ATTACHMENTS_DIRECTORY_PATH, ATTACHMENT_MODE)
         initialize_necessary_files(log_file=LOG_FILE_PATH)
 

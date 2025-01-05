@@ -1,6 +1,6 @@
 import csv
 import os
-from Utilities.utils import check_body_template, check_csv, check_gmail_app_password, clean_csv_fieldnames, get_files, get_single_file, initialize_necessary_files, sort_csv
+from Utilities.utils import check_body_template, check_csv, check_gmail_app_password, clean_csv_fieldnames, get_files, get_single_file, initialize_necessary_files, load_config, sort_csv
 
 
 ## ===========================================================================
@@ -110,9 +110,7 @@ if __name__ == "__main__":
     if not os.getcwd()[-9:] == "Resources":
         print("\nPlease change your working directory to the main repository.\n\nExiting...\n")
         exit(1)
-        
-    EMAIL_SUBJECT = "Subject"
-
+    
     CERTIFICATE_EMAIL_AUTOMATION_DIR_PATH = os.path.join(os.getcwd(),"Certificate_Email_Automation")
     CERTIFICATE_GENERATOR_DIRECTORY_PATH = os.path.join(os.getcwd(), "Certificate_Generator")
     EMAIL_SENDER_DIRECTORY_PATH = os.path.join(os.getcwd(), "Email_Sender")
@@ -154,18 +152,19 @@ if __name__ == "__main__":
     
     clean_csv_fieldnames(spreadsheet_file_path)
     
+    sort_csv(spreadsheet_file_path)
+    
     # Open the file and ensure it has the correct contents as needed
     check_csv(spreadsheet_file_path, "Other", "Attendance")
     
     extract_spreadsheet(spreadsheet_file_path, tosend_csv_path, wordlist_file_path)
 
-    sort_csv(spreadsheet_file_path)
     sort_csv(tosend_csv_path)
     
     try:
         certificate_script_status = os.system(f"python {certificate_script_path} extract_certify_and_email_script")
         if certificate_script_status == 0:
-            os.system(f"python {email_script_path} extract_certify_and_email_script \"{EMAIL_SUBJECT}\"")
+            os.system(f"python {email_script_path} extract_certify_and_email_script")
     except KeyboardInterrupt:
         exit(1)
     except Exception as e:
