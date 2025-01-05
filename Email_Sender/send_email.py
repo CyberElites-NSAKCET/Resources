@@ -258,12 +258,13 @@ if __name__ == "__main__":
     SMTP_PORT = config.get("smtp_port")
     SENDER_EMAIL = config.get("sender_email")
     EMAIL_SUBJECT = config.get("email_subject")
+    SENDER_PASSWORD = config.get("gmail_app_password")
 
     # === ATTACHMENT MODE ===
     # 'None': No attachments will be sent.
     # 'Common': The first recipient's attachments will be sent to everyone.
     # 'Respective': Attachments from the CSV file will be used for each recipient respectively.
-    ATTACHMENT_MODE = config.get("attachment_mode")  # Change this to 'None', 'Common', or 'Respective' (in quotes)
+    ATTACHMENT_MODE = config.get("attachment_mode")  
     
     automation_script = len(sys.argv) > 1 and sys.argv[1] == "extract_certify_and_email_script"
     
@@ -285,16 +286,14 @@ if __name__ == "__main__":
 
     BODY_TEMPLATE_FILE_PATH = os.path.join(DIR_PATH, "body_template.html")
     LOG_FILE_PATH = os.path.join(DIR_PATH, "email_log.txt")
-    GMAIL_APP_PASSWORD_FILE_PATH  = os.path.join(DIR_PATH, "gmail_app_password.txt")
-    
-    initialize_necessary_files(BODY_TEMPLATE_FILE_PATH, gmail_app_password_file=GMAIL_APP_PASSWORD_FILE_PATH) if not automation_script else initialize_necessary_files(log_file=LOG_FILE_PATH)
+        
+    initialize_necessary_files(BODY_TEMPLATE_FILE_PATH) if not automation_script else initialize_necessary_files(log_file=LOG_FILE_PATH)
 
     if not automation_script:
+        check_gmail_app_password(SENDER_PASSWORD)
         csv_files = get_files(SPREADSHEET_DIRECTORY_PATH, 'CSV')
         spreadsheet_file = get_single_file('Spreadsheet', SPREADSHEET_DIRECTORY_PATH, 'CSV')
         CSV_FILE_PATH = os.path.join(SPREADSHEET_DIRECTORY_PATH, spreadsheet_file)  
-    
-    SENDER_PASSWORD = check_gmail_app_password(GMAIL_APP_PASSWORD_FILE_PATH)
 
     check_body_template(BODY_TEMPLATE_FILE_PATH)
     

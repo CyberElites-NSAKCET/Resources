@@ -120,7 +120,6 @@ if __name__ == "__main__":
     
     BODY_TEMPLATE_FILE_PATH = os.path.join(CERTIFICATE_EMAIL_AUTOMATION_DIR_PATH, "body_template.html")
     LOG_FILE_PATH = os.path.join(CERTIFICATE_EMAIL_AUTOMATION_DIR_PATH, "email_log.txt")
-    GMAIL_APP_PASSWORD_FILE_PATH  = os.path.join(CERTIFICATE_EMAIL_AUTOMATION_DIR_PATH, "gmail_app_password.txt")
     
     print("\n" + " Certificate_Email_Automation ".center(40, "-"))
     
@@ -128,7 +127,8 @@ if __name__ == "__main__":
     os.makedirs(SPREADSHEET_DIRECTORY_PATH, exist_ok=True)
     os.makedirs(TEMPLATE_DIRECTORY_PATH, exist_ok=True)
     
-    initialize_necessary_files(BODY_TEMPLATE_FILE_PATH, None, GMAIL_APP_PASSWORD_FILE_PATH)
+    config = load_config()
+    initialize_necessary_files(BODY_TEMPLATE_FILE_PATH)
     
     csv_files = get_files(SPREADSHEET_DIRECTORY_PATH, 'CSV')
     spreadsheet_file = get_single_file('Spreadsheet', SPREADSHEET_DIRECTORY_PATH, 'CSV')
@@ -138,7 +138,8 @@ if __name__ == "__main__":
     certificate_script_path = os.path.join(CERTIFICATE_GENERATOR_DIRECTORY_PATH, "certificate_generator.py")
     email_script_path = os.path.join(EMAIL_SENDER_DIRECTORY_PATH, "send_email.py")
     
-    passwd = check_gmail_app_password(GMAIL_APP_PASSWORD_FILE_PATH)
+    passwd = config.get("gmail_app_password")
+    check_gmail_app_password(passwd)
     
     os.makedirs(WORDLIST_DIRECTORY_PATH, exist_ok=True)
     text_files = get_files(WORDLIST_DIRECTORY_PATH, 'TXT')
