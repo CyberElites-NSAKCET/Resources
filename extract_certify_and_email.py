@@ -1,6 +1,6 @@
 import csv
 import os
-from Utilities.utils import get_files, get_single_file, initialize_necessary_files, check_gmail_app_password, check_body_template, check_csv, sort_csv
+from Utilities.utils import check_body_template, check_csv, check_gmail_app_password, clean_csv_fieldnames, get_files, get_single_file, initialize_necessary_files, sort_csv
 
 
 ## ===========================================================================
@@ -151,6 +151,8 @@ if __name__ == "__main__":
     wordlist_file_path = os.path.join(WORDLIST_DIRECTORY_PATH, 'wordlist.txt')
     
     check_body_template(BODY_TEMPLATE_FILE_PATH)
+    
+    clean_csv_fieldnames(spreadsheet_file_path)
     
     # Open the file and ensure it has the correct contents as needed
     check_csv(spreadsheet_file_path, "Other", "Attendance")

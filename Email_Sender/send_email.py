@@ -10,7 +10,7 @@ import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from socket import gaierror
-from Utilities.utils import get_files, get_single_file, add_attachment, read_email_body_template, check_attachments, check_body_template, check_csv, check_gmail_app_password, sort_csv, initialize_necessary_files
+from Utilities.utils import add_attachment, check_attachments, check_body_template, check_csv, check_gmail_app_password, clean_csv_fieldnames, get_files, get_single_file, initialize_necessary_files, read_email_body_template, sort_csv
 
 
 ## ===========================================================================
@@ -147,7 +147,7 @@ def send_bulk_emails(csv_file_path, body_template_file):
             row_index = 2
             for row in reader:
                 try:
-                    if row.get("Email", "") is None or row.get("Full Name", "") is None:
+                    if not row.get("Email", "") or not row.get("Full Name", ""):
                         raise ValueError("Missing recipient email or name in a row.")
                     else:
                         # Extract recipient details
@@ -300,13 +300,14 @@ if __name__ == "__main__":
     check_body_template(BODY_TEMPLATE_FILE_PATH)
     
     # Check command-line arguments
-    if not automation_script:
+    if automation_script:
+        check_attachments(CSV_FILE_PATH, attachment_mode=ATTACHMENT_MODE,automation_dir_path=CERTIFICATE_EMAIL_AUTOMATION_DIR_PATH)
+    else:
+        clean_csv_fieldnames(CSV_FILE_PATH)
         check_csv(CSV_FILE_PATH, ATTACHMENT_MODE)
         sort_csv(CSV_FILE_PATH)
         check_attachments(CSV_FILE_PATH, ATTACHMENTS_DIRECTORY_PATH, ATTACHMENT_MODE)
         initialize_necessary_files(log_file=LOG_FILE_PATH)
-    else:
-        check_attachments(CSV_FILE_PATH, attachment_mode=ATTACHMENT_MODE,automation_dir_path=CERTIFICATE_EMAIL_AUTOMATION_DIR_PATH)
 
     # === SET UP LOGGING ===
     logging.basicConfig(
