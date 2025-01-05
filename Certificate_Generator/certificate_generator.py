@@ -43,6 +43,19 @@ def generate_certificates(template_file_path, wordlist_contents):
     except:
         print("\nInvalid Font file!\nPlease ensure that you use a valid TTF file.\n\nExiting...\n")
         exit(1)
+    
+    try:
+        name_case = int(input("\nSelect Case for the Names: \n\n  1. UPPERCASE\n  2. Title Case\n\n--> "))
+    except KeyboardInterrupt:
+        print("\n\nKeyboard Interrupt!\n\nExiting...\n")
+        exit(1)
+    except Exception as e:
+        print("\n\nInvalid Input!\nPlease select correct case index.\n\nExiting...\n")
+        exit(1)
+    
+    if name_case not in [1, 2]:
+        print("\n\nInvalid Input!\nPlease select correct case index.\n\nExiting...\n")
+        exit(1)
         
     # Define a single temporary file path
     tmp_file = os.path.join(TEMPORARY_DIRECTORY_PATH, "tmp_file.pdf")
@@ -56,7 +69,7 @@ def generate_certificates(template_file_path, wordlist_contents):
         
     os.makedirs(output_folder_path, exist_ok=True)
         
-    print("\nGenerating the certificates......\n")
+    print("\n\nGenerating the certificates......\n")
     try:
         for name in wordlist_contents:
         
@@ -76,6 +89,8 @@ def generate_certificates(template_file_path, wordlist_contents):
         
             # Draw each character with the specified spacing
             x_offset = centered_x
+            name = name.upper() if name_case == 1 else name.title()
+            
             for char in name:
                 new_canvas.drawString(x_offset, POSITION[1], char)
                 x_offset += pdfmetrics.stringWidth(char, 'CustomFont', FONT_SIZE) + CHAR_SPACING
