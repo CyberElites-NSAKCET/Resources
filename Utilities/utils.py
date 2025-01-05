@@ -1,7 +1,7 @@
 import csv
+import json
 import logging
 import os
-import tempfile
 from email import encoders
 from email.mime.base import MIMEBase
 
@@ -126,46 +126,40 @@ def check_attachments(csv_file_path, attachments_dir_path=None, attachment_mode=
 
 ## --------------------------------------------------------------------------
 # Function to strip fieldnames and remove any colons
-def clean_csv_fieldnames(filename):
-    """Strips whitespace and trailing colons from fieldnames in a CSV, overwriting.
+def clean_csv_fieldnames(file_path):
+    """
+    Strips whitespace and removes trailing colons from field names (header) 
+    in a CSV file treated as a plain text file.
 
     Args:
-        filename: Path to the CSV file.
+        file_path (str): Path to the CSV file.
     """
     try:
-        with tempfile.NamedTemporaryFile(mode='w', delete=False, newline='', encoding='utf-8') as tmpfile:
-            with open(filename, 'r', newline='', encoding='utf-8') as infile:
-                reader = csv.DictReader(infile)
-                if not reader.fieldnames:
-                    print("Warning: Input file is empty. No changes made.")
-                    exit(1)
+        # Read the file content
+        with open(file_path, 'r', encoding='utf-8') as txt_file:
+            rows = txt_file.readlines()
 
-                fieldnames = []
-                for field in reader.fieldnames:
-                    stripped_field = field.strip()
-                    if stripped_field.endswith(':'):
-                        stripped_field = stripped_field[:-1].strip() # Remove colon and strip again
-                    fieldnames.append(stripped_field)
+        if not rows:
+            print("\nThe file is empty! Nothing to process.\n")
+            return
 
-                writer = csv.DictWriter(tmpfile, fieldnames=fieldnames)
-                writer.writeheader()
+        # Process the header row
+        header = rows.pop(0).strip()
+        cleaned_header = ",".join(
+            field.strip().rstrip(":").strip() for field in header.split(",")
+        )
 
-                for row in reader:
-                    new_row = {}
-                    for field, value in row.items():
-                        stripped_field = field.strip()
-                        if stripped_field.endswith(':'):
-                            stripped_field = stripped_field[:-1].strip()
-                        new_row[stripped_field] = value
-                    writer.writerow(new_row)
+        # Combine the cleaned header with the rest of the rows
+        updated_rows = [cleaned_header] + ["\n"] + rows
 
-        os.replace(tmpfile.name, filename)
+        # Write the updated content back to the file
+        with open(file_path, 'w', encoding='utf-8') as txt_file:
+            txt_file.writelines(updated_rows)
 
-    except FileNotFoundError:
-        print(f"Error: Input file '{filename}' not found.")
-        exit(1)
+        print("\nField names cleaned successfully! Whitespace and trailing colons removed from the header.\n")
+
     except Exception as e:
-        print(f"An error occurred: {e}")
+        print(f"\nError processing the file:\n{e}\n")
         exit(1)
 
 
@@ -418,6 +412,38 @@ def initialize_necessary_files(body_template_file=None, log_file=None, gmail_app
                     
                     f.write(default_html_code)
 
+## --------------------------------------------------------------------------
+# Function to read config.json file
+def load_config(filename="config.json"):
+  """Loads configuration from a JSON file in the project root directory.
+
+  Args:
+      filename (str, optional): The filename of the configuration file.
+          Defaults to "config.json".
+
+  Returns:
+      dict, None: A dictionary containing the loaded configuration,
+          or None if the file is not found.
+
+  Raises:
+      Exception: If an error occurs while reading the JSON file.
+  """
+
+  project_root = os.path.abspath(os.path.dirname(__file__))
+  config_path = os.path.join(os.path.join(project_root, ".."), filename)
+
+  try:
+    with open(config_path, 'r') as json_config_file:
+      return json.load(json_config_file)
+  except FileNotFoundError:
+    print(f"Error: Config file '{config_path}' not found.")
+    exit(1)
+  except json.JSONDecodeError:
+    print(f"Error: Invalid JSON format in '{config_path}'.")
+    exit(1)
+  except Exception as e:
+    print(f"An error occurred while reading the config file: {e}")
+    exit(1)
 
 ## --------------------------------------------------------------------------
 # === FUNCTION: READ EMAIL BODY TEMPLATE ===
@@ -555,11 +581,20 @@ def sort_csv(file_path):
         print("\nEmpty CSV file!\nNo valid rows in the file to sort!\n\nExiting...\n")
         exit(1)
         
-    if data_rows[0].count(",") == 1:
-        sorted_data = sorted(row.strip() for row in rows if row.strip())
-    else:
-        sorted_data = sorted(data_rows, key=lambda row: row.split(',')[1].strip())
+    # Split the header into columns and find the index of "Full Name"
+    columns = header.split(",")  # Comma-separated columns
+    try:
+        name_column_index = columns.index("Full Name")
+    except ValueError:
+        print("\n'Full Name' column not found in the file header!\n\nExiting...\n")
+        exit(1)
 
+    # Sort the data rows based on the "Full Name" field
+    sorted_data = sorted(
+        data_rows,
+        key=lambda row: row.split(",")[name_column_index].strip() if len(row.split(",")) > name_column_index else ""
+    )
+    
     # Combine header with sorted data
     sorted_rows = [header] + sorted_data
     try:
