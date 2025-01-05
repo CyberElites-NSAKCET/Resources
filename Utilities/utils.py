@@ -289,39 +289,30 @@ def check_csv(csv_file_path, attachment_mode, additional_column=None):
 
 ## --------------------------------------------------------------------------
 # Function to check gmail app password file
-def check_gmail_app_password(gmail_app_password_file):
+def check_gmail_app_password(gmail_app_password):
     """
     Validates the Gmail application password stored in a file.
 
     Args:
-        gmail_app_password_file (str): Path to the file containing the Gmail application password.
+        gmail_app_password (str): The Gmail application password.
 
     Returns:
-        str: The Gmail application password.
+        None
 
     Exits:
-        Exits the program if the password file is missing, corrupted, or contains invalid data.
+        Exits the program if the password is corrupted, or contains invalid data.
     """
+    
+    if not isinstance(gmail_app_password, str):
+        print("\nApp password should be a string\n\nExiting...\n")
+        exit(1)
+    if gmail_app_password.count(" ") != 0:
+        print("\nError in gmail app password!!\nInput password without any spaces.\n\nExiting...\n")
+        exit(1)
+    if len(gmail_app_password) != 16:
+        print("\nInvalid gmail app password!!\n\nExiting...\n")
+        exit(1)
 
-    try:
-        # Read the names from the file
-        with open(gmail_app_password_file, 'r') as file:
-            lines = file.readlines()
-            password = [line.strip() for line in lines if line.strip()]
-            if len(password) != 1 or password[0].count(" ") != 0:
-                print("\nError in gmail app password!!\nInput password in a single line and without any spaces.\n\nExiting...\n")
-                exit(1)
-            if len(password[0]) != 16:
-                print("\nInvalid gmail app password!!\n\nExiting...\n")
-                exit(1)
-        return password[0]
-            
-    except FileNotFoundError:
-        print("\nError in reading password file!\nPlease ensure that the file exists at correct location.\n\nExiting...\n")
-        exit(1)
-    except Exception as e:
-        print(f"\nError in reading password file!\n{e}\nPlease ensure that the file is not corrupted.\n\nExiting...\n")
-        exit(1)
 
 ## --------------------------------------------------------------------------
 # Function to get list of files with specific extension within a directory
@@ -390,20 +381,19 @@ def get_single_file(directory_name, directory, extension):
 
 ## --------------------------------------------------------------------------
 # Function to initialize files
-def initialize_necessary_files(body_template_file=None, log_file=None, gmail_app_password_file=None):
+def initialize_necessary_files(body_template_file=None, log_file=None):
     """
     Creates necessary files if they do not already exist.
 
     Args:
         body_template_file (str, optional): Path to the HTML body template file.
         log_file (str, optional): Path to the log file.
-        gmail_app_password_file (str, optional): Path to the Gmail application password file.
 
     Returns:
         None
     """
 
-    for file in [body_template_file, log_file, gmail_app_password_file]:
+    for file in [body_template_file, log_file]:
         if not file:
             continue
         if not os.path.exists(file):

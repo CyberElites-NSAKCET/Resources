@@ -13,7 +13,6 @@ Email_Sender/__pycache__
 Email_Sender/Spreadsheet/*
 Email_Sender/Attachments/*
 Email_Sender/email_log.txt
-Email_Sender/gmail_app_password.txt
 Email_Sender/body_template.html
 
 Certificate_Email_Automation/tmp/
@@ -24,7 +23,6 @@ Certificate_Email_Automation/Spreadsheet/*
 Certificate_Email_Automation/tosend.csv
 Certificate_Email_Automation/gen_certs_dir_path.txt
 Certificate_Email_Automation/email_log.txt
-Certificate_Email_Automation/gmail_app_password.txt
 Certificate_Email_Automation/body_template.html
 
 Utilities/__pycache__
