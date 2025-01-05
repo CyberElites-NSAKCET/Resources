@@ -1,6 +1,7 @@
 import csv
 import logging
 import os
+import tempfile
 from email import encoders
 from email.mime.base import MIMEBase
 
@@ -123,6 +124,50 @@ def check_attachments(csv_file_path, attachments_dir_path=None, attachment_mode=
             print("\nExiting...\n")
             exit(1)
 
+## --------------------------------------------------------------------------
+# Function to strip fieldnames and remove any colons
+def clean_csv_fieldnames(filename):
+    """Strips whitespace and trailing colons from fieldnames in a CSV, overwriting.
+
+    Args:
+        filename: Path to the CSV file.
+    """
+    try:
+        with tempfile.NamedTemporaryFile(mode='w', delete=False, newline='', encoding='utf-8') as tmpfile:
+            with open(filename, 'r', newline='', encoding='utf-8') as infile:
+                reader = csv.DictReader(infile)
+                if not reader.fieldnames:
+                    print("Warning: Input file is empty. No changes made.")
+                    exit(1)
+
+                fieldnames = []
+                for field in reader.fieldnames:
+                    stripped_field = field.strip()
+                    if stripped_field.endswith(':'):
+                        stripped_field = stripped_field[:-1].strip() # Remove colon and strip again
+                    fieldnames.append(stripped_field)
+
+                writer = csv.DictWriter(tmpfile, fieldnames=fieldnames)
+                writer.writeheader()
+
+                for row in reader:
+                    new_row = {}
+                    for field, value in row.items():
+                        stripped_field = field.strip()
+                        if stripped_field.endswith(':'):
+                            stripped_field = stripped_field[:-1].strip()
+                        new_row[stripped_field] = value
+                    writer.writerow(new_row)
+
+        os.replace(tmpfile.name, filename)
+
+    except FileNotFoundError:
+        print(f"Error: Input file '{filename}' not found.")
+        exit(1)
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        exit(1)
+
 
 ## --------------------------------------------------------------------------
 # Function to check the html body file contents
@@ -192,7 +237,7 @@ def check_csv(csv_file_path, attachment_mode, additional_column=None):
         
         csv_file.seek(0)
         reader = csv.DictReader(csv_file)
-        if not rows or reader.fieldnames is None:  # If rows is empty, only the header or completely empty file
+        if not rows or not reader.fieldnames:  # If rows is empty, only the header or completely empty file
             print("\nThe CSV file is either empty or only contains the header.\n")
             exit(1)
 
@@ -214,16 +259,37 @@ def check_csv(csv_file_path, attachment_mode, additional_column=None):
         
         csv_file.seek(0)
         reader = csv.DictReader(csv_file)
+        duplicate_emails = []
+        email_map = {}
         invalid_rows = []
         for row_index, row in enumerate(reader, start=2):
-            if row.get("Full Name", "") is None or row.get("Email", "") is None:
+            if not row.get("Full Name", "") or not row.get("Email", ""):
                 invalid_rows.append(row_index)
                 continue
             if row.get("Full Name", "").strip() == "" or row.get("Email", "").strip() == "":
                 invalid_rows.append(row_index)
+                
+            email = row.get("Email", "").strip()
+            # Map emails to their row indices and associated names
+            if email not in email_map:
+                email_map[email] = {"indices": [], "names": set()}
+            email_map[email]["indices"].append(row_index)
+            email_map[email]["names"].add(row.get("Full Name", ""))
 
-        if invalid_rows:
-            print(f"\nFull Name or Email not found in Row Index - {invalid_rows}\n")
+        duplicate_emails = {email: details for email, details in email_map.items() if len(details["indices"]) > 1}
+        
+        if invalid_rows or duplicate_emails:
+            if invalid_rows:
+                print(f"\nFull Name or Email not found in Row Index - {invalid_rows}\n")
+
+            if duplicate_emails:
+                for email, details in duplicate_emails.items():
+                    indices = details["indices"]
+                    names = details["names"]
+                    same_names = len(names) == 1
+                    print(f"\nDuplicate Email '{email}' found in Row Indices - {indices} - with {'same' if same_names else 'different'} names")
+
+            print("\nExiting...\n")
             exit(1)
 
 
@@ -250,6 +316,9 @@ def check_gmail_app_password(gmail_app_password_file):
             password = [line.strip() for line in lines if line.strip()]
             if len(password) != 1 or password[0].count(" ") != 0:
                 print("\nError in gmail app password!!\nInput password in a single line and without any spaces.\n\nExiting...\n")
+                exit(1)
+            if len(password[0]) != 16:
+                print("\nInvalid gmail app password!!\n\nExiting...\n")
                 exit(1)
         return password[0]
             
@@ -341,7 +410,7 @@ def initialize_necessary_files(body_template_file=None, log_file=None, gmail_app
     """
 
     for file in [body_template_file, log_file, gmail_app_password_file]:
-        if file is None:
+        if not file:
             continue
         if not os.path.exists(file):
             with open(file, 'w') as f:
