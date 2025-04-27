@@ -9,11 +9,11 @@ from Utilities.utils import check_body_template, check_csv, check_gmail_app_pass
 # Functiont to extract spreadsheet and write necessary columns to wordlist and csv file
 def extract_spreadsheet(spreadsheet_file_path, tosend_csv_path, wordlist_file_path):
     """
-    Extracts specific columns from a spreadsheet file and creates a filtered CSV file 
+    Extracts specific columns from a spreadsheet file and creates a filtered CSV file
     and a wordlist text file for further processing.
 
     Args:
-        spreadsheet_file_path (str): Path to the input spreadsheet CSV file. 
+        spreadsheet_file_path (str): Path to the input spreadsheet CSV file.
                                      The file must have "Full Name", "Email", and "Attendance" columns.
         tosend_csv_path (str): Path to save the output CSV file containing "Full Name" and "Email" columns.
         wordlist_file_path (str): Path to save the text file containing "Full Name" entries.
@@ -43,7 +43,7 @@ def extract_spreadsheet(spreadsheet_file_path, tosend_csv_path, wordlist_file_pa
             with open(tosend_csv_path, mode='w', newline='') as tosend_csv_file:
                 csv_writer = csv.writer(tosend_csv_file)
                 csv_writer.writerow(['Full Name', 'Email'])  # Write header row
-                
+
                 # Create and write to 'wordlist.txt'
                 with open(wordlist_file_path, mode='w') as wordlist_file:
                     for row in reader:
@@ -52,7 +52,7 @@ def extract_spreadsheet(spreadsheet_file_path, tosend_csv_path, wordlist_file_pa
                             csv_writer.writerow([full_name, row['Email']])
                             wordlist_file.write(f"{full_name}\n")
                     print("\n\'Full Name\' column successfully written to wordlist file.")
-                    
+
                 print("\'Full Name\' and \'Email\' columns successfully extracted to \'tosend.csv\' file.")
             print("\nSuccessfully extracted the spreadsheet file.\n")
         except PermissionError:
@@ -110,58 +110,58 @@ if __name__ == "__main__":
     if not os.getcwd()[-9:] == "Resources":
         print("\nPlease change your working directory to the main repository.\n\nExiting...\n")
         exit(1)
-    
+
     CERTIFICATE_EMAIL_AUTOMATION_DIR_PATH = os.path.join(os.getcwd(),"Certificate_Email_Automation")
     CERTIFICATE_GENERATOR_DIRECTORY_PATH = os.path.join(os.getcwd(), "Certificate_Generator")
     EMAIL_SENDER_DIRECTORY_PATH = os.path.join(os.getcwd(), "Email_Sender")
     SPREADSHEET_DIRECTORY_PATH = os.path.join(CERTIFICATE_EMAIL_AUTOMATION_DIR_PATH, "Spreadsheet")
     WORDLIST_DIRECTORY_PATH = os.path.join(CERTIFICATE_EMAIL_AUTOMATION_DIR_PATH, "Wordlist")
     TEMPLATE_DIRECTORY_PATH = os.path.join(CERTIFICATE_EMAIL_AUTOMATION_DIR_PATH, 'Certificate_Template')
-    
+
     BODY_TEMPLATE_FILE_PATH = os.path.join(CERTIFICATE_EMAIL_AUTOMATION_DIR_PATH, "body_template.html")
     LOG_FILE_PATH = os.path.join(CERTIFICATE_EMAIL_AUTOMATION_DIR_PATH, "email_log.txt")
-    
+
     print("\n" + " Certificate_Email_Automation ".center(40, "-"))
-    
+
     os.makedirs(CERTIFICATE_EMAIL_AUTOMATION_DIR_PATH, exist_ok=True)
     os.makedirs(SPREADSHEET_DIRECTORY_PATH, exist_ok=True)
     os.makedirs(TEMPLATE_DIRECTORY_PATH, exist_ok=True)
-    
+
     config = load_config()
     initialize_necessary_files(BODY_TEMPLATE_FILE_PATH)
-    
+
     csv_files = get_files(SPREADSHEET_DIRECTORY_PATH, 'CSV')
     spreadsheet_file = get_single_file('Spreadsheet', SPREADSHEET_DIRECTORY_PATH, 'CSV')
     spreadsheet_file_path = os.path.join(SPREADSHEET_DIRECTORY_PATH, spreadsheet_file)
-    
+
     tosend_csv_path = os.path.join(CERTIFICATE_EMAIL_AUTOMATION_DIR_PATH, "tosend.csv")
     certificate_script_path = os.path.join(CERTIFICATE_GENERATOR_DIRECTORY_PATH, "certificate_generator.py")
     email_script_path = os.path.join(EMAIL_SENDER_DIRECTORY_PATH, "send_email.py")
-    
+
     passwd = config.get("gmail_app_password")
     check_gmail_app_password(passwd)
-    
+
     os.makedirs(WORDLIST_DIRECTORY_PATH, exist_ok=True)
     text_files = get_files(WORDLIST_DIRECTORY_PATH, 'TXT')
     if not text_files:
         with open(os.path.join(WORDLIST_DIRECTORY_PATH, 'wordlist.txt'), 'w') as tosend_csv_file:
             pass
-        
+
     wordlist_file_path = os.path.join(WORDLIST_DIRECTORY_PATH, 'wordlist.txt')
-    
+
     check_body_template(BODY_TEMPLATE_FILE_PATH)
-    
+
     clean_csv_fieldnames(spreadsheet_file_path)
-    
+
     sort_csv(spreadsheet_file_path)
-    
+
     # Open the file and ensure it has the correct contents as needed
     check_csv(spreadsheet_file_path, "Other", "Attendance")
-    
+
     extract_spreadsheet(spreadsheet_file_path, tosend_csv_path, wordlist_file_path)
 
     sort_csv(tosend_csv_path)
-    
+
     try:
         certificate_script_status = os.system(f"python {certificate_script_path} extract_certify_and_email_script")
         if certificate_script_status == 0:
