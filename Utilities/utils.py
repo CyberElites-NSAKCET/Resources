@@ -74,7 +74,7 @@ def check_attachments(csv_file_path, attachments_dir_path=None, attachment_mode=
         csv_file.seek(0)  # Reset file pointer
         reader = csv.DictReader(csv_file)
         is_missing = False
-        
+
         # Read the common attachments if needed
         if attachment_mode == "Common":
             first_row = next(reader, None)
@@ -92,7 +92,7 @@ def check_attachments(csv_file_path, attachments_dir_path=None, attachment_mode=
                     if not os.path.exists(attachment_path):
                         is_missing = True
                         print(f"\nCommon attachment of first row not found - {attachment}")
-                        
+
         elif attachment_mode == "Respective":
             missing_files =[]
             for row_index, row in enumerate(reader, start=2):
@@ -101,25 +101,25 @@ def check_attachments(csv_file_path, attachments_dir_path=None, attachment_mode=
                     missing_files = [path.strip() for path in attachments if path.strip() and not os.path.exists(os.path.join(attachments_dir_path,path.strip()))]
                 else:
                     attachments = []
-                    
+
                 if missing_files:
-                    is_missing = True                    
+                    is_missing = True
                     print(f"Attachment not found - Row Index \'{row_index}\' - {missing_files}")
-        
+
         elif attachment_mode == "Other":
             for row_index, row in enumerate(reader, start=2):
                 name = row.get("Full Name", "").title().strip()
                 attachments = f"{name.title().strip().replace(' ', '_')}_certificate.pdf"
-                
+
                 gen_certs_dir_path = os.path.join(automation_dir_path, "gen_certs_dir_path.txt")
                 with open(gen_certs_dir_path, "r") as file:
                     gen_certs_dir_path = file.read()
-                    
+
                 attachment_path = os.path.join(gen_certs_dir_path, attachments)
                 if not os.path.exists(attachment_path):
-                    is_missing = True                    
+                    is_missing = True
                     print(f"Attachment not found: Row Index \'{row_index}\' - {attachments}")
-                    
+
         if is_missing:
             print("\nExiting...\n")
             exit(1)
@@ -128,7 +128,7 @@ def check_attachments(csv_file_path, attachments_dir_path=None, attachment_mode=
 # Function to strip fieldnames and remove any colons
 def clean_csv_fieldnames(file_path):
     """
-    Strips whitespace and removes trailing colons from field names (header) 
+    Strips whitespace and removes trailing colons from field names (header)
     in a CSV file treated as a plain text file.
 
     Args:
@@ -186,7 +186,7 @@ def check_body_template(body_template_path):
     except:
         print("\nError in reading HTML file.\nPlease ensure that the file is not corrupted!\n\nExiting...\n")
         exit(1)
-        
+
     if not lines:
         print("\nEmpty HTML body template file\nPlease enter valid HTML contents and check it's rendering before script execution.\n\nExiting...\n")
         exit(1)
@@ -198,7 +198,7 @@ def check_body_template(body_template_path):
     if lines[0].startswith("<!--") and lines[-1].strip().endswith("-->"):
         print("\nThe body template file has contents commented.\nPlease enter valid HTML contents and check it's rendering before script execution.\n\nExiting...\n")
         exit(1)
-        
+
 
 ## --------------------------------------------------------------------------
 # Function to check the csv file contents
@@ -228,7 +228,7 @@ def check_csv(csv_file_path, attachment_mode, additional_column=None):
         except:
             print("\nError in reading CSV file.\nEnsure that the file is not corrupted.\n\nExiting...\n")
             exit(1)
-        
+
         csv_file.seek(0)
         reader = csv.DictReader(csv_file)
         if not rows or not reader.fieldnames:  # If rows is empty, only the header or completely empty file
@@ -250,7 +250,7 @@ def check_csv(csv_file_path, attachment_mode, additional_column=None):
         except Exception as e:
             print(f"\nError:{e}")
             exit(1)
-        
+
         csv_file.seek(0)
         reader = csv.DictReader(csv_file)
         duplicate_emails = []
@@ -262,7 +262,7 @@ def check_csv(csv_file_path, attachment_mode, additional_column=None):
                 continue
             if row.get("Full Name", "").strip() == "" or row.get("Email", "").strip() == "":
                 invalid_rows.append(row_index)
-                
+
             email = row.get("Email", "").strip()
             # Map emails to their row indices and associated names
             if email not in email_map:
@@ -271,7 +271,7 @@ def check_csv(csv_file_path, attachment_mode, additional_column=None):
             email_map[email]["names"].add(row.get("Full Name", ""))
 
         duplicate_emails = {email: details for email, details in email_map.items() if len(details["indices"]) > 1}
-        
+
         if invalid_rows or duplicate_emails:
             if invalid_rows:
                 print(f"\nFull Name or Email not found in Row Index - {invalid_rows}\n")
@@ -302,7 +302,7 @@ def check_gmail_app_password(gmail_app_password):
     Exits:
         Exits the program if the password is corrupted, or contains invalid data.
     """
-    
+
     if not isinstance(gmail_app_password, str):
         print("\nApp password should be a string\n\nExiting...\n")
         exit(1)
@@ -330,13 +330,13 @@ def get_files(directory, extension):
     Raises:
         FileNotFoundError: Displays an error message if the directory does not exist.
     """
-    
+
     try:
         files_list = [file for file in os.listdir(directory) if file.endswith(f'.{extension.lower()}')]
     except FileNotFoundError as e:
         print(f"\nError reading template file: {e}")
         exit(1)
-        
+
     return files_list
 
 
@@ -357,7 +357,7 @@ def get_single_file(directory_name, directory, extension):
     Exits:
         Exits the program if no file or multiple files with the specified extension are found.
     """
-    
+
     files = get_files(directory, extension)
     if len(files) == 1:
         return files[0]
@@ -365,7 +365,7 @@ def get_single_file(directory_name, directory, extension):
         print(f"\nCannot read multiple {extension.upper()} files.")
     else:
         print(f"\nFailed to read from {extension.upper()} file.")
-        
+
         if extension == "TXT":
             try:
                 wordlist_file_path = os.path.join(directory, "wordlist.txt")
@@ -374,7 +374,7 @@ def get_single_file(directory_name, directory, extension):
                 print("\nCreating an empty 'wordlist.txt' file in 'Wordlist' directory, add contents to it execute the script again!\n")
             except IOError as e:
                 print(f"Error creating 'wordlist.txt' file: {e}")
-        
+
     print(f"Please provide a single {extension.upper()} file within the \"{directory_name}\" directory.\n")
     exit(1)
 
@@ -399,7 +399,7 @@ def initialize_necessary_files(body_template_file=None, log_file=None):
         if not os.path.exists(file):
             with open(file, 'w') as f:
                 if file == body_template_file:
-                    
+
                     f.write(default_html_code)
 
 ## --------------------------------------------------------------------------
@@ -458,8 +458,8 @@ def read_email_body_template(body_template_file):
         logging.error(f"Error reading HTML body template file\n{e}")
         print(f"\nError reading HTML body template file\n{e}\n\nExiting...\n")
         exit(1)
-        
-        
+
+
 ## --------------------------------------------------------------------------
 # Function to read the contents of the file
 def read_wordlist(file_path):
@@ -475,11 +475,11 @@ def read_wordlist(file_path):
     Exits:
         Exits the program if the wordlist contains invalid characters or is empty.
     """
-    
+
     forbidden_chars = set('<>\"?|/\\:*')
 
     names = sort_wordlist(file_path)
-    
+
     # Check each name for forbidden characters
     line_error = False
     print()
@@ -487,15 +487,15 @@ def read_wordlist(file_path):
         if any(char in forbidden_chars for char in line):
             print(f"Error: The wordlist file contains forbidden characters on - line {line_number}: ('{line.strip()}').")
             line_error = True
-                    
+
     if line_error:
         print("Please remove any of the following characters from the wordlist: < > \" ? | / \\ : *\n\nExiting...\n")
         exit(1)
-    
+
     if not names:
         print("\nEmpty Wordlist file!\nEnsure that Wordlist TXT files has correct Names.\n\nExiting...\n")
         exit(1)
-            
+
     return names
 
 
@@ -514,10 +514,10 @@ def select_font(fonts_directory_path):
     Exits:
         Exits the program if no fonts are available or the user input is invalid.
     """
-    
+
     font_dict = {}
     truetype_font_files = sorted(get_files(fonts_directory_path, 'TTF'))
-    
+
     if len(truetype_font_files) < 1:
         print(f"\nNo fonts available in \"Fonts\" directory.\nPlease add any valid TTF files to Fonts directory and try again\n\nExiting....\n")
         exit(1)
@@ -559,18 +559,18 @@ def sort_csv(file_path):
         # Read the file and split into lines
         with open(file_path, 'r', encoding='utf-8') as txt_file:
             rows = txt_file.readlines()
-            
+
         # Extract header and data rows
         header = rows.pop(0).strip()
         data_rows = [row.strip() for row in rows if row.strip()]
     except Exception as e:
         print(f"\nError in reading TXT file!\nPlease ensure that the file is not corrupted.\n\nExiting...\n")
         exit(1)
-        
+
     if not data_rows:
         print("\nEmpty CSV file!\nNo valid rows in the file to sort!\n\nExiting...\n")
         exit(1)
-        
+
     # Split the header into columns and find the index of "Full Name"
     columns = header.split(",")  # Comma-separated columns
     try:
@@ -584,7 +584,7 @@ def sort_csv(file_path):
         data_rows,
         key=lambda row: row.split(",")[name_column_index].strip() if len(row.split(",")) > name_column_index else ""
     )
-    
+
     # Combine header with sorted data
     sorted_rows = [header] + sorted_data
     try:
@@ -597,7 +597,7 @@ def sort_csv(file_path):
         print(f"\nError sorting the file.\nMake sure that the file isn't open!\n{e}\nExiting...\n")
         exit(1)
 
-    
+
 ## --------------------------------------------------------------------------
 # Function to sort the provided wordlist file
 def sort_wordlist(file_path):
@@ -632,4 +632,4 @@ def sort_wordlist(file_path):
         print("\nError sorting the wordlist file.\nMake sure that the file isn't open!\n\nExiting...\n")
         exit(1)
 
-    return sorted_names 
+    return sorted_names

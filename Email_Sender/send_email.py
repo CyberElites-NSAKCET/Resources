@@ -47,17 +47,17 @@ def send_email(recipient_email, name, subject, body, attachments):
 
         # Add the HTML body
         msg.attach(MIMEText(body, "html"))
-        
+
         # Check command-line arguments
         if len(sys.argv) > 1 and sys.argv[1].strip() == "extract_certify_and_email_script":
             gen_certs_dir_path = os.path.join(CERTIFICATE_EMAIL_AUTOMATION_DIR_PATH, "gen_certs_dir_path.txt")
-            
+
             with open(gen_certs_dir_path, "r") as file:
                 gen_certs_dir_path = file.read()
-                
+
             attachment_path = os.path.join(gen_certs_dir_path, attachments)
             add_attachment(msg, attachment_path)
-            
+
         else:
             for attachment_path in attachments:
                 if attachment_path.strip():  # Ensure path is not empty
@@ -84,7 +84,7 @@ def send_email(recipient_email, name, subject, body, attachments):
 
     except smtplib.SMTPAuthenticationError as e:
         print(f"Incorrect Gmail App Password!\nAuthentication Failed for \'{SENDER_EMAIL}\' with provided password.\n")
-        exit(1)   
+        exit(1)
     except gaierror as e:
         print("Failed to send Emails....\nCheck your Internet connection\nEmails not sent form recipient name: \'{name}\'\n\nExiting...\n")
         exit(1)
@@ -119,16 +119,16 @@ def send_bulk_emails(csv_file_path, body_template_file):
     """
 
     global ATTACHMENT_MODE
-    
+
     try:
         # Read the email body template
         body_template = read_email_body_template(body_template_file)
-            
+
         # Open the CSV file
         with open(csv_file_path, "r", encoding="utf-8") as csv_file:
             csv_file.seek(0)  # Reset file pointer
             reader = csv.DictReader(csv_file)
-            
+
             # Read the common attachments if needed
             if ATTACHMENT_MODE == "Common":
                 first_row = next(reader, None)
@@ -141,7 +141,7 @@ def send_bulk_emails(csv_file_path, body_template_file):
 
             csv_file.seek(0)  # Reset file pointer
             reader = csv.DictReader(csv_file)  # Reinitialize reader
-            
+
             print("\nSending emails to recipients.....\n")
 
             row_index = 2
@@ -166,10 +166,10 @@ def send_bulk_emails(csv_file_path, body_template_file):
 
                     elif ATTACHMENT_MODE == "Other":
                         attachments = f"{name.title().strip().replace(' ', '_')}_certificate.pdf"
-                        
+
                     elif ATTACHMENT_MODE == "None":
                         attachments = []
-                        
+
                     else:
                         print("\nInvalid Attachment Mode specified!\nPlease select among \'Respective\',\'Common\' or \'None\'.")
                         exit(1)
@@ -180,7 +180,7 @@ def send_bulk_emails(csv_file_path, body_template_file):
 
                     # Send the email
                     send_email(recipient_email, name, EMAIL_SUBJECT, personalized_body, attachments)
-                    
+
                     row_index += 1
 
                 except Exception as row_error:
@@ -239,7 +239,7 @@ if __name__ == "__main__":
     """
 
     print("\n" + " Email Sender ".center(24, "-"))
-    
+
     if os.getcwd()[-9:] == "Resources":
         EMAIL_SENDER_DIRECTORY_PATH = os.path.join(os.getcwd(), 'Email_Sender')
         ROOT_REPO_PATH = os.getcwd()
@@ -247,11 +247,11 @@ if __name__ == "__main__":
     elif os.getcwd()[-12:] == "Email_Sender":
         EMAIL_SENDER_DIRECTORY_PATH = os.getcwd()
         ROOT_REPO_PATH = os.path.join(os.getcwd(), '..')
-        
+
     else:
         print("\nPlease change your working directory to the main repository.\n\nExiting...\n")
         exit(1)
-    
+
     config = load_config()
     # === CONFIGURATION ===
     SMTP_SERVER = config.get("smtp_server")
@@ -264,14 +264,14 @@ if __name__ == "__main__":
     # 'None': No attachments will be sent.
     # 'Common': The first recipient's attachments will be sent to everyone.
     # 'Respective': Attachments from the CSV file will be used for each recipient respectively.
-    ATTACHMENT_MODE = config.get("attachment_mode")  
-    
+    ATTACHMENT_MODE = config.get("attachment_mode")
+
     automation_script = len(sys.argv) > 1 and sys.argv[1] == "extract_certify_and_email_script"
-    
+
     if not automation_script and ATTACHMENT_MODE == "Other":
         print("\nInvalid Attachment mode specified for the Email_Sender code.\nThis mode is explicitly for the automation script\n\nPlease select from \"None\", \"Common\" or \"Respective\"\n\nExiting..\n")
         exit(1)
-    
+
     if automation_script:
         CERTIFICATE_EMAIL_AUTOMATION_DIR_PATH = os.path.join(ROOT_REPO_PATH, "Certificate_Email_Automation")
         DIR_PATH = CERTIFICATE_EMAIL_AUTOMATION_DIR_PATH
@@ -286,17 +286,17 @@ if __name__ == "__main__":
 
     BODY_TEMPLATE_FILE_PATH = os.path.join(DIR_PATH, "body_template.html")
     LOG_FILE_PATH = os.path.join(DIR_PATH, "email_log.txt")
-        
+
     initialize_necessary_files(BODY_TEMPLATE_FILE_PATH) if not automation_script else initialize_necessary_files(log_file=LOG_FILE_PATH)
 
     if not automation_script:
         check_gmail_app_password(SENDER_PASSWORD)
         csv_files = get_files(SPREADSHEET_DIRECTORY_PATH, 'CSV')
         spreadsheet_file = get_single_file('Spreadsheet', SPREADSHEET_DIRECTORY_PATH, 'CSV')
-        CSV_FILE_PATH = os.path.join(SPREADSHEET_DIRECTORY_PATH, spreadsheet_file)  
+        CSV_FILE_PATH = os.path.join(SPREADSHEET_DIRECTORY_PATH, spreadsheet_file)
 
     check_body_template(BODY_TEMPLATE_FILE_PATH)
-    
+
     # Check command-line arguments
     if automation_script:
         check_attachments(CSV_FILE_PATH, attachment_mode=ATTACHMENT_MODE,automation_dir_path=CERTIFICATE_EMAIL_AUTOMATION_DIR_PATH)
@@ -313,5 +313,5 @@ if __name__ == "__main__":
         level=logging.INFO,
         format="%(asctime)s - %(levelname)s - %(message)s",
     )
-                    
+
     send_bulk_emails(CSV_FILE_PATH, BODY_TEMPLATE_FILE_PATH)
