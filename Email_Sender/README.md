@@ -1,127 +1,148 @@
 # Email Automation Script
 
-This script is designed to send bulk emails with optional attachments using Gmail's SMTP server. It provides features such as email personalization, attachment handling, and integration with certificate automation workflows.
+This script sends bulk personalized emails using Gmail's SMTP server. It supports HTML templates, multiple attachment modes, and integrates with certificate automation workflows.
 
 ---
 
 ## Features
 
 - **Bulk Email Sending**: Reads recipient details from a CSV file and sends personalized emails.
-- **Customizable Email Body**: Uses an HTML template for email body content.
-- **Attachment Modes**: Supports the following attachment modes:
+- **Customizable Email Body**: Uses an HTML template (`body_template.html`). You may use `{{name}}` as a placeholder for personalization, or omit it if not needed.
+- **Attachment Modes**:
   - **None**: No attachments.
-  - **Common**: Same attachments for all recipients.
-  - **Respective**: Attachments specified individually for each recipient in the CSV file.
-  - **Other**: Specific attachment naming convention for certificate automation workflows.
-- **Automation Integration**: Integrates with certificate generation scripts to automatically attach and send certificates.
-- **Error Logging**: Logs all operations, including errors, for debugging.
+  - **Common**: Same attachments for all recipients (from the first row).
+  - **Respective**: Attachments specified per recipient in the CSV.
+  - **Other**: Used for certificate automation; attaches generated certificates by name.
+- **Automation Integration**: Can be called by automation scripts for certificate distribution.
+- **Error Logging**: Logs all operations and errors to `email_log.txt`.
 
 ---
 
 ## Prerequisites
 
-1. **Python**: Ensure `Python 3.6` or above is installed.
-2. **Gmail App Password**: Generate a Gmail App Password for secure authentication. (Refer to Gmail documentation for steps to create an app password [here](https://knowledge.workspace.google.com/kb/how-to-create-app-passwords-000009237)).
-3. **Files and Directories**:
-   - **CSV File**: A CSV file with recipient details.
-   - **HTML Template**: A body template (`body_template.html`) for email content.
-   - **Attachments**: Directory for storing attachments.
+1. **Python 3.9+**
+2. **Gmail App Password**: [How to create one](https://knowledge.workspace.google.com/kb/how-to-create-app-passwords-000009237)
+3. **Required Python Packages**:  
+   - No extra packages beyond the Python standard library are required for email sending.  
+   - For certificate automation, see the relevant generator's requirements.
 
 ---
 
 ## Setup
-> Run the script once to create all the necessary files and directories from the Email_Sender directory using the below command:
 
-   ```bash
-   python send_email.py
-   ```
+> **💡Run the script once to create all necessary files and directories:**
 
-### 1. Repository Structure
-The repository should follow this structure:
+```bash
+python send_email.py
+```
 
-```plaintext
+### Directory Structure
+
+```
 Email_Sender/
-│
 ├── Attachments/
-│
 ├── Spreadsheet/
-│
 ├── body_template.html
-│
-├── gmail_app_password.txt
-│
 ├── email_log.txt
-│
-└── email_sender.py
+├── send_email.py
 ```
 
 ---
 
-### 2. Required Files
+## Required Files
 
-#### CSV File
-Should include the following columns:
-> Ensure that the column names doesn't have any preceeding or succeeding whitespaces.
-- **Email**: Recipient's email address.
-- **Full Name**: Recipient's full name for personalization.
-- **Attachments (optional)**: Semicolon-separated list (`;`)of attachment filenames.
+### CSV File
 
+- Place your CSV file in the `Spreadsheet/` directory.
+- Required columns:  
+  - `Full Name`
+  - `Email`
+  - `Attachments` (optional; semicolon-separated for multiple files)
+
+Example:
 ```csv
 Full Name,Email,Attachments
+Raqeeb,raq@example.com,file1.pdf;file2.pdf
+Arshad,arsh@example.com,
 ```
 
-#### HTML Body Template (`body_template.html`)
-A template file with placeholders like {{name}} for personalization.
+### HTML Body Template (`body_template.html`)
 
+- Place in the `Email_Sender/` directory.
+- You may use `{{name}}` as a placeholder for personalization, or omit it if not needed.  
+- The template can be any valid HTML content as per your requirements.
+
+Example with `{{name}}`:
 ```html
 <html>
-    <body>
-        <!-- Body Contents -->
-    </body>
+  <body>
+    <p>Hello {{name}},</p>
+    <p>Welcome to our event!</p>
+  </body>
 </html>
 ```
 
-#### Gmail App Password File (`gmail_app_password.txt`)
-Contains your Gmail App Password.
+Example without `{{name}}`:
+```html
+<html>
+  <body>
+    <p>Thank you for being part of our community!</p>
+    <p>Best regards,<br>CyberElites Club</p>
+  </body>
+</html>
+```
+
+---
+
+## Configuration
+
+Edit `config.json` in the project root to set:
+
+- `smtp_server`: e.g., `smtp.gmail.com`
+- `smtp_port`: e.g., `587`
+- `sender_email`: Your Gmail address
+- `gmail_app_password`: Your Gmail App Password (16 characters, no spaces)
+- `email_subject`: Subject line for emails
+- `attachment_mode`: `"None"`, `"Common"`, `"Respective"`, or `"Other"`
 
 ---
 
 ## Usage
 
-1. Run the script once to create all the necessary files and directories.
-2. Place your **CSV file** in the `Spreadsheet` directory.
-3. Place your **HTML template** within the `Email_Sender` directory.
-4. Place any **attachments** (if needed) in the `Attachments` directory.
-5. Open the terminal and navigate to the `Email_Sender` directory.
-6. Choose the appropriate attachment mode in the script:
-    - 'None': No attachments.
-    - 'Common': Attachments from the first row will be sent to all recipients.
-    - 'Respective': Individual attachments from the Attachments column.
-7. Run the script:
+1. Place your CSV in `Spreadsheet/`, HTML template in `Email_Sender/`, and any attachments in `Attachments/`.
+2. Set the desired attachment mode in `config.json`.
+3. Run the script:
 
-   ```bash
-   python send_email.py
-   ```
+```bash
+python send_email.py
+```
+
+- For automation (certificate workflow), the script is called with an argument by the automation script and uses the `"Other"` mode.
 
 ---
 
 ## Error Handling and Logging
 
-- Logs are saved in the `email_log.txt` file.
-- Common issues include:
+- Logs are saved in `email_log.txt`.
+- Common issues:
   - **Authentication Error**: Check your Gmail App Password.
-  - **File Not Found**: Ensure all specified files and directories exist.
-  - **Network Issues**: Verify your internet connection.
+  - **File Not Found**: Ensure all files and directories exist.
+  - **Invalid CSV Format**: Ensure required columns are present.
+  - **Network Issues**: Check your internet connection.
 
 ---
 
 ## Customization
 
-- **Email Subject**: Update the `EMAIL_SUBJECT` variable in the script.
+- **Email Subject**: Set in `config.json` as `email_subject`.
+- **HTML Template**: Edit `body_template.html` as desired. Use `{{name}}` for personalization if needed, or omit it.
 
 ---
 
 ## Troubleshooting
 
-- **Invalid CSV Format**: Ensure the CSV has the correct columns.
-- **Template Issues**: Verify that placeholders like `{{name}}` match your CSV column names.
+- **Invalid CSV Format**: Ensure the CSV has the correct columns and no extra whitespace in headers.
+- **Template Issues**: If using `{{name}}`, ensure it matches the CSV column. Otherwise, you may omit it.
+- **Attachment Issues**: Ensure files listed in `Attachments` exist in the `Attachments/` directory.
+
+---

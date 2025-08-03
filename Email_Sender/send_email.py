@@ -10,6 +10,7 @@ import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from socket import gaierror
+
 from Utilities.utils import add_attachment, check_attachments, check_body_template, check_csv, check_gmail_app_password, clean_csv_fieldnames, get_files, get_single_file, initialize_necessary_files, load_config, read_email_body_template, sort_csv
 
 
@@ -22,15 +23,15 @@ def send_email(recipient_email, name, subject, body, attachments):
     Sends an email to a single recipient with optional attachments.
 
     Args:
-        recipient_email (str): The primary recipient's email address.
-        name (str): The recipient's name for email personalization.
+        recipient_email (str): The recipient's email address.
+        name (str): The recipient's name for personalization.
         subject (str): The subject of the email.
         body (str): The HTML content of the email body.
-        attachments (list): List of file paths for attachments to include in the email.
+        attachments (list or str): List of attachment file names/paths, or a single file name/path depending on attachment mode.
 
     Raises:
         smtplib.SMTPAuthenticationError: If authentication with the SMTP server fails.
-        socket.gaierror: If there is an issue with the network connection.
+        socket.gaierror: If there is a network connection issue.
         Exception: For other unforeseen errors during the email sending process.
 
     Logs:
@@ -102,8 +103,8 @@ def send_bulk_emails(csv_file_path, body_template_file):
 
     Args:
         csv_file_path (str): Path to the CSV file containing recipient details.
-                             The file should include columns for "Email", "Full Name",
-                             and optionally "Attachments" (if attachments are needed).
+                             The file should include columns for "Email" and "Full Name".
+                             If attachments are needed, include an "Attachments" column.
         body_template_file (str): Path to the HTML file used as the email body template.
                                   The template should include placeholders for customization
                                   (e.g., "{{name}}").
@@ -203,32 +204,31 @@ def send_bulk_emails(csv_file_path, body_template_file):
 
 if __name__ == "__main__":
     """
-    Main entry point for the email automation script.
+    Main entry point for the email sender script.
 
-    This script supports sending emails with the following features:
-        - Bulk emails with recipient details fetched from a CSV file.
-        - Customizable email body using an HTML template.
-        - Optional attachments for each email based on different modes:
+    Features:
+        - Sends bulk emails using recipient details from a CSV file.
+        - Supports customizable email body via an HTML template.
+        - Handles attachments in multiple modes:
             - 'None': No attachments.
-            - 'Common': The first recipient's attachments are sent to all recipients.
-            - 'Respective': Attachments are determined on a per-recipient basis from the CSV file.
-            - 'Other': Attachments specific to certificates generated in the same workflow.(Used by automation script)
+            - 'Common': The same attachments (from the first recipient) are sent to all recipients.
+            - 'Respective': Attachments are specified per recipient in the CSV file.
+            - 'Other': Used by the automation script for certificate distribution.
 
     Automation Mode:
-        - Supports integration with a certificate generation module for automated certificate distribution.
+        - Integrates with a certificate generation module for automated certificate emailing.
         - Reads configuration and certificate paths from specific directories.
 
     Environment:
-        - Configures necessary directories for logs, attachments, and email body templates.
-        - Initializes Gmail App Password for secure authentication.
+        - Sets up directories for logs, attachments, and templates.
+        - Requires a Gmail App Password for authentication.
 
     Setup:
-        - Ensure Gmail App Password is stored securely in the specified file.
+        - Store Gmail App Password securely as specified in the config.
         - Prepare CSV files, attachments, and email body templates before running.
 
-    Logs:
-        - Detailed logs of all email operations are saved in the log file.
-        - Errors are logged with corresponding recipient details and issues.
+    Logging:
+        - Logs all email operations and errors to a log file with recipient details.
 
     Raises:
         - FileNotFoundError: If required files (CSV, HTML, or attachments) are missing.
@@ -259,11 +259,6 @@ if __name__ == "__main__":
     SENDER_EMAIL = config.get("sender_email")
     EMAIL_SUBJECT = config.get("email_subject")
     SENDER_PASSWORD = config.get("gmail_app_password")
-
-    # === ATTACHMENT MODE ===
-    # 'None': No attachments will be sent.
-    # 'Common': The first recipient's attachments will be sent to everyone.
-    # 'Respective': Attachments from the CSV file will be used for each recipient respectively.
     ATTACHMENT_MODE = config.get("attachment_mode")
 
     automation_script = len(sys.argv) > 1 and sys.argv[1] == "extract_certify_and_email_script"
