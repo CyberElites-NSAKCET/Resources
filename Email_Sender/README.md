@@ -28,6 +28,19 @@ This script sends bulk personalized emails using Gmail's SMTP server. It support
 
 ---
 
+## Configuration
+
+⚠️ **Important:** Edit `config.json` in the project root to set:
+
+- `smtp_server`: e.g., `smtp.gmail.com`
+- `smtp_port`: e.g., `587`
+- `sender_email`: Your Gmail address
+- `gmail_app_password`: Your Gmail App Password (16 characters, no spaces)
+- `email_subject`: Subject line for emails
+- `attachment_mode`: `"None"`, `"Common"`, `"Respective"`, or `"Other"`
+
+---
+
 ## Setup
 
 > **💡Run the script once to create all necessary files and directories:**
@@ -51,7 +64,7 @@ Email_Sender/
 
 ## Required Files
 
-### CSV File
+### 1) CSV File
 
 - Place your CSV file in the `Spreadsheet/` directory.
 - Required columns:  
@@ -62,11 +75,11 @@ Email_Sender/
 Example:
 ```csv
 Full Name,Email,Attachments
-Raqeeb,raq@example.com,file1.pdf;file2.pdf
-Arshad,arsh@example.com,
+Abdul,abd@example.com,file1.pdf;file2.pdf
+Raqeeb,raq@example.com,
 ```
 
-### HTML Body Template (`body_template.html`)
+### 2) HTML Body Template (`body_template.html`)
 
 - Place in the `Email_Sender/` directory.
 - You may use `{{name}}` as a placeholder for personalization, or omit it if not needed.  
@@ -92,18 +105,9 @@ Example without `{{name}}`:
 </html>
 ```
 
----
-
-## Configuration
-
-Edit `config.json` in the project root to set:
-
-- `smtp_server`: e.g., `smtp.gmail.com`
-- `smtp_port`: e.g., `587`
-- `sender_email`: Your Gmail address
-- `gmail_app_password`: Your Gmail App Password (16 characters, no spaces)
-- `email_subject`: Subject line for emails
-- `attachment_mode`: `"None"`, `"Common"`, `"Respective"`, or `"Other"`
+### 3) Attachment files *(optional)*
+ - Place them in the `Attachments/` directory.
+ - Ensure that you have specified the right Attachment mode in the `config.json` file as per your requirements.
 
 ---
 
@@ -146,3 +150,4 @@ python send_email.py
 - **Attachment Issues**: Ensure files listed in `Attachments` exist in the `Attachments/` directory.
 
 ---
+
