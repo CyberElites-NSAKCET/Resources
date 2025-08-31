@@ -53,11 +53,16 @@ python send_email.py
 
 ```
 Email_Sender/
+│
 ├── Attachments/
+│
 ├── Spreadsheet/
+│
 ├── body_template.html
+│
 ├── email_log.txt
-├── send_email.py
+│
+└── send_email.py
 ```
 
 ---
