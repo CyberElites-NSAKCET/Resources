@@ -168,7 +168,7 @@ if __name__ == "__main__":
         certificate_script_status = os.system(f"python {certificate_script_path} extract_certify_and_email_script")
         if certificate_script_status == 0:
             os.system(f"python {email_script_path} extract_certify_and_email_script")
-    except KeyboardInterrupt:
+    except (KeyboardInterrupt, EOFError):
         sys.exit(1)
     except Exception as e:
         print(f"\n\nAn error occured while executing the script.\n{e}\n")
