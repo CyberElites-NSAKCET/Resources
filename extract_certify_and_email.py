@@ -1,5 +1,7 @@
-import csv
 import os
+import csv
+import sys
+
 from Utilities.utils import check_body_template, check_csv, check_gmail_app_password, clean_csv_fieldnames, get_files, get_single_file, initialize_necessary_files, load_config, sort_csv
 
 
@@ -57,7 +59,7 @@ def extract_spreadsheet(spreadsheet_file_path, tosend_csv_path, wordlist_file_pa
             print("\nSuccessfully extracted the spreadsheet file.\n")
         except PermissionError:
             print("\nFailed to write to \"tosend.csv\" file.\nEnsure that the file is not open on the system.\n")
-            exit(1)
+            sys.exit(1)
 
 
 ## ===========================================================================
@@ -109,7 +111,7 @@ if __name__ == "__main__":
 
     if not os.getcwd()[-9:] == "Resources":
         print("\nPlease change your working directory to the main repository.\n\nExiting...\n")
-        exit(1)
+        sys.exit(1)
 
     CERTIFICATE_EMAIL_AUTOMATION_DIR_PATH = os.path.join(os.getcwd(),"Certificate_Email_Automation")
     CERTIFICATE_GENERATOR_DIRECTORY_PATH = os.path.join(os.getcwd(), "Certificate_Generator")
@@ -167,7 +169,7 @@ if __name__ == "__main__":
         if certificate_script_status == 0:
             os.system(f"python {email_script_path} extract_certify_and_email_script")
     except KeyboardInterrupt:
-        exit(1)
+        sys.exit(1)
     except Exception as e:
         print(f"\n\nAn error occured while executing the script.\n{e}\n")
-        exit(1)
+        sys.exit(1)
