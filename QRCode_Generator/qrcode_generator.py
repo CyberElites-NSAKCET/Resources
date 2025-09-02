@@ -48,7 +48,7 @@ def get_text():
     while True:
         try:
             line = input()
-        except KeyboardInterrupt:
+        except (KeyboardInterrupt, EOFError):
             print("\n\nKeyboard Interrupt!\n\nExiting....\n")
             exit(1)
 
@@ -177,7 +177,7 @@ def extension_menu():
 
     try:
         extension_type = input("\nEnter the image file extension for your QRCode\n  1. JPEG    2. JPG    3. PNG\n  4. GIF     5. TIFF   6. BMP\n  7. Exit without generating QR\n\n --> ").lower().strip()
-    except KeyboardInterrupt:
+    except (KeyboardInterrupt, EOFError):
         print("\n\nKeyboard Interrupt!\n\nExiting....\n")
         exit(1)
 
@@ -238,7 +238,7 @@ def add_center_image(qr_image, bg_color):
 
     # try:
         # center_image_path = input("\nEnter the Full path of the image to place at the center of the QR code (or press Enter to skip): ").strip()
-    # except KeyboardInterrupt:
+    # except (KeyboardInterrupt, EOFError):
         # print("\n\nKeyboard Interrupt!\n\nExiting....\n")
         # exit(1)
 
@@ -342,7 +342,7 @@ def generate_qrcode():
     # Get the QR Error Correction Level
     # try:
         # error_correction = input("\nSelect Error Correction level (Low-L, Medium-M, Quartile-Q, High-H): ").upper().strip()
-    # except KeyboardInterrupt:
+    # except (KeyboardInterrupt, EOFError):
         # print("\n\nKeyboard Interrupt!\n\nExiting....\n")
         # exit(1)
 
@@ -361,7 +361,7 @@ def generate_qrcode():
         if background_color not in [1, 2]:
             raise ValueError()
 
-    except KeyboardInterrupt:
+    except (KeyboardInterrupt, EOFError):
         print("\n\nKeyboard Interrupt!\n\nExiting....\n")
         exit(1)
     except:
@@ -381,7 +381,7 @@ def generate_qrcode():
 
     try:
         title = input("\nEnter the title to add at the top of the QR code (or press Enter to skip): ").strip()
-    except KeyboardInterrupt:
+    except (KeyboardInterrupt, EOFError):
         print("\n\nKeyboard Interrupt!\n\nExiting....\n")
         exit(1)
 
@@ -389,7 +389,7 @@ def generate_qrcode():
         qr_image = add_title(qr_image, title, bg_color)
     try:
         filename = input("\nEnter the filename for the QR code image: ").strip()
-    except KeyboardInterrupt:
+    except (KeyboardInterrupt, EOFError):
         print("\n\nKeyboard Interrupt!\n\nExiting....\n")
         exit(1)
 
