@@ -1,10 +1,16 @@
 import os
 import re
 import sys
+
 # Get the parent directory, add it to python path and import the modules
 parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.append(parent_dir)
-from Utilities.utils import select_font
+
+try:
+    from Utilities.utils import select_font
+except ImportError:
+    print("\nThis script requires the \'Utilities\' module.\n\nPlease ensure that the script is run from the correct directory.\n\nExiting...\n")
+    exit(1)
 try:
     import qrcode
     from PIL import Image, ImageDraw, ImageFont, ImageOps
