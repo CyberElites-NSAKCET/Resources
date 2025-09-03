@@ -79,7 +79,7 @@ def send_email(recipient_email, name, subject, body, attachments):
                     [recipient_email],
                     msg.as_string(),
                 )
-        except KeyboardInterrupt:
+        except (KeyboardInterrupt, EOFError):
             print(f"\nKeyboard Interrupt!\n\nEmails not sent form recipient name: \'{name}\'\n\nExiting...\n")
             exit(1)
 
