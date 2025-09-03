@@ -10,7 +10,7 @@ try:
     from Utilities.utils import select_font
 except ImportError:
     print("\nThis script requires the \'Utilities\' module.\n\nPlease ensure that the script is run from the correct directory.\n\nExiting...\n")
-    exit(1)
+    sys.exit(1)
 try:
     import qrcode
     from PIL import Image, ImageDraw, ImageFont, ImageOps
@@ -19,7 +19,7 @@ try:
     from qrcode.image.styles.moduledrawers import CircleModuleDrawer
 except ImportError:
     print("This script requires the 'qrcode' and 'pillow' modules.\nPlease install them using 'pip install qrcode pillow' and try again.")
-    exit(1)
+    sys.exit(1)
 
 
 ## ===========================================================================
@@ -50,7 +50,7 @@ def get_text():
             line = input()
         except (KeyboardInterrupt, EOFError):
             print("\n\nKeyboard Interrupt!\n\nExiting....\n")
-            exit(1)
+            sys.exit(1)
 
         if not line:
             enter_pressed += 1
@@ -66,7 +66,7 @@ def get_text():
 
     if input_text.strip() == "":
         print("No Input!!!\nCan't generate QR without input text.\n")
-        exit(1)
+        sys.exit(1)
 
     return input_text
 
@@ -179,7 +179,7 @@ def extension_menu():
         extension_type = input("\nEnter the image file extension for your QRCode\n  1. JPEG    2. JPG    3. PNG\n  4. GIF     5. TIFF   6. BMP\n  7. Exit without generating QR\n\n --> ").lower().strip()
     except (KeyboardInterrupt, EOFError):
         print("\n\nKeyboard Interrupt!\n\nExiting....\n")
-        exit(1)
+        sys.exit(1)
 
     image_format = "JPEG"
 
@@ -207,7 +207,7 @@ def extension_menu():
 
     elif extension_type in ['7']:
         print("\n\nExiting...\n")
-        exit(0)
+        sys.exit(0)
 
     else:
         print("\nInvalid extension!!! Please select correct extension from the available options.\n")
@@ -240,7 +240,7 @@ def add_center_image(qr_image, bg_color):
         # center_image_path = input("\nEnter the Full path of the image to place at the center of the QR code (or press Enter to skip): ").strip()
     # except (KeyboardInterrupt, EOFError):
         # print("\n\nKeyboard Interrupt!\n\nExiting....\n")
-        # exit(1)
+        # sys.exit(1)
 
     center_image = "White_border_circle.png" if bg_color == "white" else "White_bg_circle.png"
     center_image_path = os.path.join(LOGOS_DIRECTORY_PATH, center_image)
@@ -344,13 +344,13 @@ def generate_qrcode():
         # error_correction = input("\nSelect Error Correction level (Low-L, Medium-M, Quartile-Q, High-H): ").upper().strip()
     # except (KeyboardInterrupt, EOFError):
         # print("\n\nKeyboard Interrupt!\n\nExiting....\n")
-        # exit(1)
+        # sys.exit(1)
 
     error_correction = "H"
 
     if error_correction not in ['L','M','Q','H']:
         print("\nInvalid Input! Please select from L, M, Q, H\nQR code creation failed.\n")
-        exit(1)
+        sys.exit(1)
 
     try:
         qr_style = int(input("Select the QR style:\n  1. Standard\n  2. Dots\n\n---> "))
@@ -363,10 +363,10 @@ def generate_qrcode():
 
     except (KeyboardInterrupt, EOFError):
         print("\n\nKeyboard Interrupt!\n\nExiting....\n")
-        exit(1)
+        sys.exit(1)
     except:
         print("\nInvalid Input!!!\nEnter the number corresponding to the style\n\nExiting....\n")
-        exit(1)
+        sys.exit(1)
 
     try:
         qr_func = standard_qr_gen if qr_style == 1 else dots_qr_gen
@@ -374,7 +374,7 @@ def generate_qrcode():
         qr_image = qr_func(input_text, error_correction, bg_color)
     except Exception as e:
         print(f"\nOops! There was an error in creating QR.\n{e}\n")
-        exit(1)
+        sys.exit(1)
 
     # Add center image to the QR code
     qr_image = add_center_image(qr_image, bg_color)
@@ -383,7 +383,7 @@ def generate_qrcode():
         title = input("\nEnter the title to add at the top of the QR code (or press Enter to skip): ").strip()
     except (KeyboardInterrupt, EOFError):
         print("\n\nKeyboard Interrupt!\n\nExiting....\n")
-        exit(1)
+        sys.exit(1)
 
     if title:
         qr_image = add_title(qr_image, title, bg_color)
@@ -391,11 +391,11 @@ def generate_qrcode():
         filename = input("\nEnter the filename for the QR code image: ").strip()
     except (KeyboardInterrupt, EOFError):
         print("\n\nKeyboard Interrupt!\n\nExiting....\n")
-        exit(1)
+        sys.exit(1)
 
     if re.search(FORBIDDEN_CHARS, filename):
         print("\nInvalid filename! QR code creation failed.\nFilename can't contain \\/:*?\"<>| symbols\n")
-        exit(1)
+        sys.exit(1)
 
     if not filename:
         filename = "qrcode"
@@ -460,7 +460,7 @@ if __name__ == "__main__":
 
     else:
         print("\nPlease change your working directory to the main repository.\n\nExiting...\n")
-        exit(1)
+        sys.exit(1)
 
     LOGOS_DIRECTORY_PATH = os.path.join(QRCODES_GENERATOR_DIRECTORY_PATH, 'Logos')
     QRCODES_DIRECTORY_PATH = os.path.join(QRCODES_GENERATOR_DIRECTORY_PATH, 'QRCodes')
