@@ -52,7 +52,7 @@ def generate_certificates(template_file_path, wordlist_contents):
 
     try:
         name_case = int(input("\nSelect Case for the Names: \n\n  1. UPPERCASE\n  2. Title Case\n\n--> "))
-    except KeyboardInterrupt:
+    except (KeyboardInterrupt, EOFError):
         print("\n\nKeyboard Interrupt!\n\nExiting...\n")
         exit(1)
     except Exception as e:
@@ -127,7 +127,7 @@ def generate_certificates(template_file_path, wordlist_contents):
 
         return output_folder_path
 
-    except KeyboardInterrupt:
+    except (KeyboardInterrupt, EOFError):
         print("\n\nKeyboard Interrupt!\nAll certificates aren't generated!\n\nExiting...\n")
         exit(1)
     except Exception as e:
@@ -196,7 +196,7 @@ if __name__ == "__main__":
 
     try:
         certificate_type = int(input(f"\nSelect the type of certificate:\n  1. Membership Certificate\n  2. Event Certificate\n\n--> "))
-    except KeyboardInterrupt:
+    except (KeyboardInterrupt, EOFError):
         print("\n\nKeyboard Interrupt!\n\nExiting...\n")
         exit(1)
     except Exception as e:
