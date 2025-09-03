@@ -1,9 +1,15 @@
 import os
 import sys
+
 # Get the parent directory, add it to python path and import the modules
 parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.append(parent_dir)
-from Utilities.utils import get_single_file, load_config, read_wordlist, select_font, get_files
+
+try:
+    from Utilities.utils import get_single_file, load_config, read_wordlist, select_font, get_files
+except ImportError:
+    print("\nThis script requires the \'Utilities\' module.\n\nPlease ensure that the script is run from the correct directory.\n\nExiting...\n")
+    exit(1)
 try:
     from PyPDF2 import PdfWriter, PdfReader
     from reportlab.lib.colors import HexColor
