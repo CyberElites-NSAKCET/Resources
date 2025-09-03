@@ -1,5 +1,6 @@
 import os
 import sys
+
 # Get the parent directory, add it to python path and import the modules
 parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.append(parent_dir)
@@ -10,8 +11,11 @@ import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from socket import gaierror
-
-from Utilities.utils import add_attachment, check_attachments, check_body_template, check_csv, check_gmail_app_password, clean_csv_fieldnames, get_files, get_single_file, initialize_necessary_files, load_config, read_email_body_template, sort_csv
+try:
+    from Utilities.utils import add_attachment, check_attachments, check_body_template, check_csv, check_gmail_app_password, clean_csv_fieldnames, get_files, get_single_file, initialize_necessary_files, load_config, read_email_body_template, sort_csv
+except ImportError:
+    print("\nThis script requires the \'Utilities\' module.\n\nPlease ensure that the script is run from the correct directory.\n\nExiting...\n")
+    exit(1)
 
 
 ## ===========================================================================
