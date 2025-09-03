@@ -9,7 +9,7 @@ try:
     from Utilities.utils import get_single_file, load_config, read_wordlist, select_font, get_files
 except ImportError:
     print("\nThis script requires the \'Utilities\' module.\n\nPlease ensure that the script is run from the correct directory.\n\nExiting...\n")
-    exit(1)
+    sys.exit(1)
 try:
     from PyPDF2 import PdfWriter, PdfReader
     from reportlab.lib.colors import HexColor
@@ -19,7 +19,7 @@ try:
     from reportlab.pdfgen import canvas
 except ImportError:
     print("\nThis script requires the \'reportlab\' and \'PyPDF2\' modules.\n\nPlease install them using \'pip install reportlab PyPDF2\' and try again.\n")
-    exit(1)
+    sys.exit(1)
 
 
 ## --------------------------------------------------------------------------
@@ -48,20 +48,20 @@ def generate_certificates(template_file_path, wordlist_contents):
         pdfmetrics.registerFont(TTFont('CustomFont', font_file_path))
     except:
         print("\nInvalid Font file!\nPlease ensure that you use a valid TTF file.\n\nExiting...\n")
-        exit(1)
+        sys.exit(1)
 
     try:
         name_case = int(input("\nSelect Case for the Names: \n\n  1. UPPERCASE\n  2. Title Case\n\n--> "))
     except (KeyboardInterrupt, EOFError):
         print("\n\nKeyboard Interrupt!\n\nExiting...\n")
-        exit(1)
+        sys.exit(1)
     except Exception as e:
         print("\n\nInvalid Input!\nPlease select correct case index.\n\nExiting...\n")
-        exit(1)
+        sys.exit(1)
 
     if name_case not in [1, 2]:
         print("\n\nInvalid Input!\nPlease select correct case index.\n\nExiting...\n")
-        exit(1)
+        sys.exit(1)
 
     # Define a single temporary file path
     tmp_file = os.path.join(TEMPORARY_DIRECTORY_PATH, "tmp_file.pdf")
@@ -110,7 +110,7 @@ def generate_certificates(template_file_path, wordlist_contents):
                 existing_pdf = PdfReader(open(template_file_path, "rb"))
             except:
                 print("\nError in reading PDF template!\nPlease ensure that the file is in the correct directory and not corrupted.\n\nExiting...\n")
-                exit(1)
+                sys.exit(1)
 
             output = PdfWriter()
 
@@ -129,10 +129,10 @@ def generate_certificates(template_file_path, wordlist_contents):
 
     except (KeyboardInterrupt, EOFError):
         print("\n\nKeyboard Interrupt!\nAll certificates aren't generated!\n\nExiting...\n")
-        exit(1)
+        sys.exit(1)
     except Exception as e:
         print(f"\nAn error occured in certificate generation!\n{e}\n\nExiting....\n")
-        exit(1)
+        sys.exit(1)
 
 
 ### ===========================================================================
@@ -164,7 +164,7 @@ if __name__ == "__main__":
 
     else:
         print("\nPlease change your working directory to the main repository.\n\nExiting...\n")
-        exit(1)
+        sys.exit(1)
 
     automation_script = len(sys.argv) > 1 and sys.argv[1] == "extract_certify_and_email_script"
 
@@ -198,10 +198,10 @@ if __name__ == "__main__":
         certificate_type = int(input(f"\nSelect the type of certificate:\n  1. Membership Certificate\n  2. Event Certificate\n\n--> "))
     except (KeyboardInterrupt, EOFError):
         print("\n\nKeyboard Interrupt!\n\nExiting...\n")
-        exit(1)
+        sys.exit(1)
     except Exception as e:
         print("\n\nInvalid Input!\nPlease select correct certificate type.\n\nExiting...\n")
-        exit(1)
+        sys.exit(1)
 
     if certificate_type == 1:    # Membership_Certificate
         FONT_SIZE = 31.5
@@ -216,7 +216,7 @@ if __name__ == "__main__":
         CHAR_SPACING = 1.15
     else:
         print("\n\nInvalid Input!\nPlease select correct certificate type.\n\nExiting...\n")
-        exit(1)
+        sys.exit(1)
 
     certificates_dir = generate_certificates(template_file_path, wordlist_contents)
 
