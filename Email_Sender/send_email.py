@@ -15,7 +15,7 @@ try:
     from Utilities.utils import add_attachment, check_attachments, check_body_template, check_csv, check_gmail_app_password, clean_csv_fieldnames, get_files, get_single_file, initialize_necessary_files, load_config, read_email_body_template, sort_csv
 except ImportError:
     print("\nThis script requires the \'Utilities\' module.\n\nPlease ensure that the script is run from the correct directory.\n\nExiting...\n")
-    exit(1)
+    sys.exit(1)
 
 
 ## ===========================================================================
@@ -81,7 +81,7 @@ def send_email(recipient_email, name, subject, body, attachments):
                 )
         except (KeyboardInterrupt, EOFError):
             print(f"\nKeyboard Interrupt!\n\nEmails not sent form recipient name: \'{name}\'\n\nExiting...\n")
-            exit(1)
+            sys.exit(1)
 
         # Log success
         logging.info(f"Email sent to {recipient_email}")
@@ -89,10 +89,10 @@ def send_email(recipient_email, name, subject, body, attachments):
 
     except smtplib.SMTPAuthenticationError as e:
         print(f"Incorrect Gmail App Password!\nAuthentication Failed for \'{SENDER_EMAIL}\' with provided password.\n")
-        exit(1)
+        sys.exit(1)
     except gaierror as e:
         print("Failed to send Emails....\nCheck your Internet connection\nEmails not sent form recipient name: \'{name}\'\n\nExiting...\n")
-        exit(1)
+        sys.exit(1)
     except Exception as e:
         # Log failure
         logging.error(f"Failed to send email to {recipient_email}: {e}")
@@ -177,7 +177,7 @@ def send_bulk_emails(csv_file_path, body_template_file):
 
                     else:
                         print("\nInvalid Attachment Mode specified!\nPlease select among \'Respective\',\'Common\' or \'None\'.")
-                        exit(1)
+                        sys.exit(1)
 
                     # Customize the email body
                     personalized_body = body_template.replace("{{name}}", name)
@@ -254,7 +254,7 @@ if __name__ == "__main__":
 
     else:
         print("\nPlease change your working directory to the main repository.\n\nExiting...\n")
-        exit(1)
+        sys.exit(1)
 
     config = load_config()
     # === CONFIGURATION ===
@@ -269,7 +269,7 @@ if __name__ == "__main__":
 
     if not automation_script and ATTACHMENT_MODE == "Other":
         print("\nInvalid Attachment mode specified for the Email_Sender code.\nThis mode is explicitly for the automation script\n\nPlease select from \"None\", \"Common\" or \"Respective\"\n\nExiting..\n")
-        exit(1)
+        sys.exit(1)
 
     if automation_script:
         CERTIFICATE_EMAIL_AUTOMATION_DIR_PATH = os.path.join(ROOT_REPO_PATH, "Certificate_Email_Automation")
