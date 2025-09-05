@@ -45,9 +45,19 @@ This script sends bulk personalized emails using Gmail's SMTP server. It support
 
 > **💡Run the script once to create all necessary files and directories:**
 
-```bash
-python send_email.py
-```
+1) Clone the repo
+   ```bash
+   git clone https://github.com/CyberElites-NSAKCET/Resources 
+   ```  
+2) Change the working directory to the Email Sender directory
+   ```bash
+   cd Resources
+   cd Email_Sender
+   ```  
+3) Run the script once to create all the files and directories 
+    ```bash
+    python send_email.py
+    ```
 
 ### Directory Structure
 
@@ -122,9 +132,9 @@ Example without `{{name}}`:
 2. Set the desired attachment mode in `config.json`.
 3. Run the script:
 
-```bash
-python send_email.py
-```
+    ```bash
+    python send_email.py
+    ```
 
 - For automation (certificate workflow), the script is called with an argument by the automation script and uses the `"Other"` mode.
 
@@ -155,4 +165,3 @@ python send_email.py
 - **Attachment Issues**: Ensure files listed in `Attachments` exist in the `Attachments/` directory.
 
 ---
-
