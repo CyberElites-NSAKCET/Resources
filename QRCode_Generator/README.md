@@ -60,11 +60,18 @@ QRCode_Generator/
   ```
 
 ### Running the Script
-
-1. **Navigate to the main directory** containing the script.
-2. **Execute the script** using:
+1) Clone the repo
    ```bash
-   python QRCode_Generator.py
+   git clone https://github.com/CyberElites-NSAKCET/Resources 
+   ```  
+2) Change the working directory to the QRCode Generator directory
+   ```bash
+   cd Resources
+   cd QRCode_Generator
+   ```
+3) **Execute the script** using:
+   ```bash
+   python qrcode_generator.py
    ```
 
 ## Steps for QR Code Generation
@@ -112,3 +119,4 @@ QRCode_Generator/
 
 ### Keyboard Interrupts
 - Gracefully handles interruptions during execution.
+
