@@ -59,17 +59,29 @@ Certificate_Generator/
 ---
 
 ## How to Use
+> **💡Run the script once to create all necessary files and directories:**
 
-> **Execute the `certificate_generator.py` once to automatically create the required directories.**
+1) Clone the repo
+   ```bash
+   git clone https://github.com/CyberElites-NSAKCET/Resources
+   ```
+2) Change the working directory to the Certificate Generator directory
+   ```bash
+   cd Resources
+   cd Certificate_Generator 
+   ```
+3) Run the script once to create all the files and directories
+    ```bash
+    python certificate_generator.py
+    ```
 
 ### Setup the Directory:
 1. Place a pre-designed PDF template in the `Certificate_Template/` directory.  
-2. Add names (one per line) to `wordlist.txt` in the `Wordlist/` directory.  
+2. Add (one per line) to `wordlist.txt` in the `Wordlist/` directory.  
 3. Add any `.ttf` font files to the `Fonts/` directory.  
 
 ### Run the Script:
-1. Navigate to the main directory containing the script.  
-2. Execute the script using the command:  
+Execute the script using the command:  
    ```bash
    python certificate_generator.py
    ```
@@ -103,3 +115,4 @@ Certificate_Generator/
 
 - **Missing Directories or Files**:  
   The script will automatically create missing directories and provide informative error messages.  
+
