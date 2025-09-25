@@ -53,26 +53,34 @@ QRCode_Generator/
 ## How to Use
 
 ### Prerequisites
-- Python 3.6 or higher
-- Install the required modules:
-  ```bash
-  pip install qrcode pillow
-  ```
+
+- **Python Version**: Python 3.6 or higher.
+- **Required Modules**:
+  - [qrcode](https://pypi.org/project/qrcode/) (for QR code generation)
+  - [Pillow](https://pypi.org/project/Pillow/) (for image processing)
 
 ### Running the Script
-1) Clone the repo
-   ```bash
-   git clone https://github.com/CyberElites-NSAKCET/Resources 
-   ```  
-2) Change the working directory to the QRCode Generator directory
-   ```bash
-   cd Resources
-   cd QRCode_Generator
-   ```
-3) **Execute the script** using:
-   ```bash
-   python qrcode_generator.py
-   ```
+
+1) Clone the repo  
+    ```bash
+    git clone https://github.com/CyberElites-NSAKCET/Resources
+    cd Resources
+    ```
+
+2) Install the dependencies using the command:  
+    ```bash
+    pip install -r requirements.txt
+    ```
+
+3) Change the working directory to the QRCode Generator directory  
+    ```bash
+    cd QRCode_Generator
+    ```
+
+4) **Execute the script** using:  
+    ```bash
+    python qrcode_generator.py
+    ```
 
 ## Steps for QR Code Generation
 
@@ -119,4 +127,3 @@ QRCode_Generator/
 
 ### Keyboard Interrupts
 - Gracefully handles interruptions during execution.
-
