@@ -39,17 +39,18 @@ function isValidEmail(email) {
  * @param {Array} formData - The submitted form data that caused the error.
  */
 function logError(error, timestamp, formData) {
-    var ss = SpreadsheetApp.getActiveSpreadsheet();
-    var logSheet = ss.getSheetByName("Error Log Sheet");
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var logSheetName = "Error Log"; // Define the name in one place to avoid typos
+  var logSheet = ss.getSheetByName(logSheetName);
 
-    // Create a new sheet for logging if it doesn't exist
-    if (!logSheet) {
-        logSheet = ss.insertSheet("Error Log");
-        logSheet.appendRow(["Timestamp", "Error Message", "Form Data"]); // Header row for log entries
-    }
+  // Create a new sheet for logging if it doesn't exist
+  if (!logSheet) {
+    logSheet = ss.insertSheet(logSheetName); // Use the correct, consistent name
+    logSheet.appendRow(["Timestamp", "Error Message", "Form Data"]); // Header row for log entries
+  }
 
-    // Append the error details to the log sheet
-    logSheet.appendRow([timestamp, error.message, JSON.stringify(formData)]);
+  // Append the error details to the log sheet
+  logSheet.appendRow([timestamp, error.message, JSON.stringify(formData)]);
 }
 
 /**
@@ -107,3 +108,4 @@ function setupTrigger() {
         .onFormSubmit()
         .create();
 }
+
