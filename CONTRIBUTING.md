@@ -50,6 +50,10 @@ Reference any related issues (if applicable).
 **Notes**  
 Add any additional information that reviewers should be aware of (future considerations, limitations, etc.).  
 
+### 🏷️ Labels
+- Add at least one appropriate label (e.g., `bug`, `enhancement`, `documentation`, `chore`) to every pull request.  
+- Labels help categorize and prioritize pull requests, making the review process smoother.
+
 ---
 
 ## 🧪 Testing
