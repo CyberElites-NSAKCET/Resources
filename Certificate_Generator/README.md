@@ -20,12 +20,6 @@ A Python-based script designed to generate personalized certificates by combinin
   - [ReportLab](https://pypi.org/project/reportlab/) (for PDF generation)
   - [PyPDF2](https://pypi.org/project/PyPDF2/) (for handling PDF templates)
 
-Install the dependencies using the command:
-
-```bash
-pip install reportlab PyPDF2
-```
-
 ## Directory Structure
 
 Ensure the following directory structure is set up before running the script:
@@ -59,18 +53,25 @@ Certificate_Generator/
 ---
 
 ## How to Use
-> **💡Run the script once to create all necessary files and directories:**
+> **💡Run the script once to create all necessary files and directories:**  
 
-1) Clone the repo
-   ```bash
-   git clone https://github.com/CyberElites-NSAKCET/Resources
-   ```
-2) Change the working directory to the Certificate Generator directory
-   ```bash
-   cd Resources
-   cd Certificate_Generator 
-   ```
-3) Run the script once to create all the files and directories
+1) Clone the repo  
+    ```bash
+    git clone https://github.com/CyberElites-NSAKCET/Resources
+    cd Resources
+    ```
+
+2) Install the dependencies using the command:  
+    ```bash
+    pip install -r requirements.txt
+    ```
+
+3) Change the working directory to the Certificate Generator directory  
+    ```bash
+    cd Certificate_Generator
+    ```
+
+4) Run the script once to create all the files and directories  
     ```bash
     python certificate_generator.py
     ```
@@ -115,4 +116,3 @@ Execute the script using the command:
 
 - **Missing Directories or Files**:  
   The script will automatically create missing directories and provide informative error messages.  
-
