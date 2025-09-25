@@ -1,84 +1,154 @@
 # Certificate Email Automation Script
 
-This script automates the process of extracting recipient details, generating certificates, and sending personalized emails with certificates as attachments.
+This script automates the process of extracting recipient details from a spreadsheet, generating personalized certificates, and sending personalized emails with customizable HTML templates and certificates as attachments.
 
 ## Features
 
-- **Spreadsheet Extraction**: Reads a CSV spreadsheet and filters attendees based on their "Attendance" status.
-- **Certificate Generation**: Integrates with a certificate generation script to create personalized certificates.
+- **Spreadsheet Extraction**: Reads a CSV spreadsheet and filters attendees based on their `"Attendance"` status.
+- **Certificate Generation**: Integrates with a `certificate_generator.py` script to create personalized certificates.
 - **Email Sending**: Sends certificates via email with a customizable HTML email template.
 - **File Validation**: Ensures required directories, files, and inputs are properly structured.
-- **Error Logging**: Logs all actions and errors in a log file for easy debugging.
+- **Configurable Workflow**: Uses `config.json` for Gmail credentials, subject lines, and integration settings.
+- **Error Logging**: Logs all actions and errors in a `email_log.txt` file for easy debugging.
 
 ---
 
 ## Prerequisites
 
 - **Python**: Ensure Python 3.6 or above is installed.
-- **Required Modules**: The script relies on utility functions from `Utilities.utils`.
-- **Gmail App Password**: Generate a Gmail App Password for secure email authentication. (Refer to Gmail documentation for steps to create an app password [here](https://knowledge.workspace.google.com/kb/how-to-create-app-passwords-000009237)).
+- **Gmail App Password**: [How to create one](https://knowledge.workspace.google.com/kb/how-to-create-app-passwords-000009237).
 
 ---
+
+## Configuration
+> ⚠️ Important: Edit config.json in the project root to set:
+
+ - `smtp_server`: e.g., `smtp.gmail.com`
+ - `smtp_port`: e.g., `587`
+ - `sender_email`: Your Gmail address
+ - `gmail_app_password`: Your Gmail App Password (16 characters, no spaces)
+ - `email_subject`: Subject line for certificate emails
+ - `attachment_mode`: Always `"Other"` (certificate automation mode)
+
+---
+
+## Setup
+> **💡Run the script once to create all necessary files and directories:**  
+
+1) Clone the repo  
+    ```bash
+    git clone https://github.com/CyberElites-NSAKCET/Resources
+    cd Resources
+    ```
+
+2) Install the dependencies using the command:  
+    ```bash
+    pip install -r requirements.txt
+    ```
+
+3) Run the script once to create all the files and directories  
+    ```bash
+    python extract_certify_and_email.py
+    ```
 
 ## Repository Structure
 
 ```plaintext
 Resources/
 │
-├── Certificate_Email_Automation/
-│   │
-│   ├── Certificate_Template/
-│   │
-│   ├── Spreadsheet/
-│   │
-│   ├── Wordlist/
-│   │
-│   ├── Generated_Certificates/ (created automatically for certificates)
-│   │
-│   ├── body_template.html
-│   │
-│   ├── email_log.txt
-│   │
-│   └── gmail_app_password.txt
+├── extract_certify_and_email.py
 │
-└── extract_certify_and_email.py
+└── Certificate_Email_Automation/
+    │
+    ├── Certificate_Template/
+    │   └── <certificate_template>.pdf
+    │
+    ├── Spreadsheet/
+    │   └── <spreadsheet_file>.csv
+    │
+    ├── Wordlist/
+    │
+    ├── Generated_Certificates/ (created automatically for certificates)
+    │
+    ├── body_template.html
+    │
+    └── email_log.txt
 ```
+
+---
+
+## Required Files
+
+### 1) Spreadsheet (CSV)
+
+- Place your CSV file in the `Spreadsheet/` directory.
+- Required columns:
+  > ⚠️ Ensure that the column names doesn't have any preceeding or succeeding whitespaces.
+   - `Full Name`: Full name of the recipient.
+   - `Email`: Email address of the recipient.
+   - `Attendance`: A column to indicate attendance (use `TRUE` for attendees).
+
+    Example:
+    ```csv
+    Full Name,Email,Attendance
+    Abdul,abd@example.com,TRUE
+    Raqeeb,raq@example.com,FALSE
+    ```
+
+### 2) HTML Email Template (`body_template.html`)
+
+- Place in `Certificate_Email_Automation/`.
+- You may use `{{name}}` as a placeholder for personalization, or omit it if not needed.  
+- The template can be any valid HTML content as per your requirements.
+
+    Example with `{{name}}`:
+    ```html
+    <html>
+      <body>
+        <p>Dear {{name}},</p>
+        <p>Thank you for attending our event. Your certificate is attached.</p>
+      </body>
+    </html>
+    ```
+    Example without `{{name}}`:
+    ```html
+    <html>
+      <body>
+        <p>Dear Attendee,</p>
+        <p>Thank you for attending our event. Your certificate is attached.</p>
+      </body>
+    </html>
+    ```
+
+### 3) Certificate Template
+
+- Place your `.pdf` certificate template in the `Certificate_Template/` directory.
+- Names from `wordlist.txt` will be used to generate personalized certificates.
 
 ---
 
 ## Usage
 
-### 1. Prepare the Environment
-> Run the script once to create all the necessary files and directories using the below command:
+1) Place your spreadsheet in `Spreadsheet/`, certificate template in `Certificate_Template/`, and ensure `body_template.html` exists.
 
-   ```bash
-   python extract_certify_and_email.py
-   ```
+2) Update `config.json` with Gmail credentials and subject.
 
-1. Place your spreadsheet file in the `Spreadsheet` directory. Ensure it has the following columns:
-    > Ensure that the column names doesn't have any preceeding or succeeding whitespaces.
-   - **Full Name**: Full name of the recipient.
-   - **Email**: Email address of the recipient.
-   - **Attendance**: A column to indicate attendance (use `TRUE` for attendees).
+3) Run the script:
 
-   ```csv
-   Full Name,Email,Attendance
-   ```
+    ```bash
+    python extract_certify_and_email.py
+    ```
 
-2. Place your email body template (`body_template.html`) in the Certificate_Email_Automation directory.
-3. Ensure a `.pdf` certificate template is present in the Certificate_Template directory.
-4. Add your Gmail App Password to `gmail_app_password.txt` for secure email authentication.
-5. Open the terminal and navigate to the project directory and run the script:
+- The script will:
+    - Extract recipients marked `"TRUE"` in Attendance.
+    - Generate certificates.
+    - Send personalized emails with certificates attached.
 
-  ```bash
-  python extract_certify_and_email.py
-  ```
+### Workflow Overview
 
-### 2. Workflow Overview
-
-- **Spreadsheet Extraction**: The script extracts the "Full Name" and "Email" columns for attendees marked as `TRUE` in the "Attendance" column.
+- **Spreadsheet Extraction**: The script extracts the `"Full Name"` and `"Email"` columns for attendees marked as `TRUE` in the `"Attendance"` column.
   - Creates a `tosend.csv` file with these details.
-  - Writes the "Full Name" column to `wordlist.txt` for certificate generation.
+  - Writes the `"Full Name"` column to `wordlist.txt` for certificate generation.
 
 - **Certificate Generation**: Calls `certificate_generator.py` to generate personalized certificates.
 
@@ -98,8 +168,9 @@ Resources/
 
 ## Customization
 
-- **Email Subject**: Update the `EMAIL_SUBJECT` variable in the script.
-- **Gmail Credentials**: Replace `SENDER_EMAIL` with your Gmail address in the `send_email.py` script.
+- **Email Subject**: Set the `email_subject` in the `config.json` file.
+- **Certificate Design**: Provide the template PDF in `Certificate_Template/` directory.
+- **Email Body**: Edit `body_template.html` file as needed.
 
 ---
 
@@ -107,6 +178,7 @@ Resources/
 
 - **Invalid CSV Format**: Ensure the input spreadsheet has the required columns.
 - **Template Issues**: Verify that the email body template (`body_template.html`) is correctly formatted.
+- **Email Not Sent**: Verify SMTP settings and internet connection.
 
 ---
 
