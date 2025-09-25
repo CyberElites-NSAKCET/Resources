@@ -65,8 +65,10 @@ This script sends bulk personalized emails using Gmail's SMTP server. It support
 Email_Sender/
 │
 ├── Attachments/
+│   └── <attachment files>
 │
 ├── Spreadsheet/
+│   └── <spreadsheet_file>.csv
 │
 ├── body_template.html
 │
