@@ -89,7 +89,6 @@ if __name__ == "__main__":
             - `Spreadsheet`: Directory for input CSV files containing attendee details.
             - `Certificate_Template`: Directory for certificate templates.
             - `Wordlist`: Directory for wordlists used in certificate generation.
-        - Initializes a Gmail App Password for secure email authentication.
 
     Key Components:
         - **Spreadsheet Extraction**:
