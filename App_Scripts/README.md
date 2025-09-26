@@ -24,10 +24,13 @@ This project automates email responses to Google Form submissions. Using Apps Sc
   ![required questions](assets/images/required-questions.png "required questions")
 
 3. Ensure that in **Form Settings**, the option to "Collect email addresses" is set to **Don’t collect** 
-  > This setting avoids duplicating email fields and ensures compatibility with the script.
+  > This setting avoids duplicating email fields and ensures compatibility with the script.  
   
+  _In Settings tab:_ &nbsp;**Settings > Responses > Collect email addresses**  
   ![response settings](assets/images/response-settings(1).png "response settings")  
-  ![response settings](assets/images/response-settings(2).png "response settings")
+
+  _In Settings tab:_ &nbsp;**Defaults > Form defaults > Collect email addresses by default**  
+  ![response settings](assets/images/response-settings(2).png "default settings")
 
 ---
 
@@ -73,3 +76,4 @@ This project automates email responses to Google Form submissions. Using Apps Sc
 - **Error Logging**: Errors are logged to a sheet named "Error Log Sheet" for debugging.
 - **Email Index**: Ensure `e.values[1]` corresponds to the email column in your sheet.
 - **Gmail Limits**: Free Gmail accounts are limited to 100 emails per day.
+
