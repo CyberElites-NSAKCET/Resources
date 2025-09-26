@@ -10,9 +10,10 @@ Commit messages should be **clear, concise, and focused** on the specific change
 
 ### Format
   ```bash
-  <prefix>: <short description>
+  <prefix>(file/module): <short description>
   ```
 - The **prefix** indicates the type of change.  
+- The **file/module** in parentheses specifies the area of the project the change applies to.  
 - The **short description** should summarize the change in a professional way.  
 
 ### Allowed Prefixes
@@ -24,6 +25,11 @@ Commit messages should be **clear, concise, and focused** on the specific change
 - **perf**: Performance improvements.  
 - **chore**: Routine tasks such as build process changes or dependency updates.  
 - **clean**: Code cleanup that improves readability or removes unused code.  
+
+**Examples of commit messages (for clarity only):**
+- `feat(email): Add bulk email support`  
+- `fix(cert-email): Resolve crash when loading template`  
+- `docs(qr): Update docstrings and README`  
 
 ---
 
