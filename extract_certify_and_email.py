@@ -89,6 +89,7 @@ if __name__ == "__main__":
             - `Spreadsheet`: Directory for input CSV files containing attendee details.
             - `Certificate_Template`: Directory for certificate templates.
             - `Wordlist`: Directory for wordlists used in certificate generation.
+        - Initializes a Gmail App Password for secure email authentication.
 
     Key Components:
         - **Spreadsheet Extraction**:
@@ -165,14 +166,15 @@ if __name__ == "__main__":
 
     extract_spreadsheet(spreadsheet_file_path, tosend_csv_path, wordlist_file_path)
 
-    sort_csv(tosend_csv_path)
-
-    try:
-        certificate_script_status = os.system(f"python {certificate_script_path} extract_certify_and_email_script")
-        if certificate_script_status == 0:
-            os.system(f"python {email_script_path} extract_certify_and_email_script")
-    except (KeyboardInterrupt, EOFError):
-        sys.exit(1)
-    except Exception as e:
-        print(f"\n\nAn error occured while executing the script.\n{e}\n")
-        sys.exit(1)
+    sort_csv(tosend_csv_path)    
+try:
+    # Enclose certificate_script_path in quotes
+    certificate_script_status = os.system(f'python "{certificate_script_path}" extract_certify_and_email_script')
+    if certificate_script_status == 0:
+        # Enclose email_script_path in quotes
+        os.system(f'python "{email_script_path}" extract_certify_and_email_script')
+except (KeyboardInterrupt, EOFError):
+    sys.exit(1)
+except Exception as e:
+    print(f"\n\nAn error occured while executing the script.\n{e}\n")
+    sys.exit(1)
