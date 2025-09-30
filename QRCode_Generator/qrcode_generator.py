@@ -3,14 +3,11 @@ import re
 import sys
 
 # Get the parent directory, add it to python path and import the modules
-parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+parent_dir = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 sys.path.append(parent_dir)
 
-try:
-    from Utilities.utils import select_font
-except ImportError:
-    print("\nThis script requires the \'Utilities\' module.\n\nPlease ensure that the script is run from the correct directory.\n\nExiting...\n")
-    sys.exit(1)
+from Utilities.utils import select_font
+
 try:
     import qrcode
     from PIL import Image, ImageDraw, ImageFont, ImageOps
@@ -243,7 +240,7 @@ def add_center_image(qr_image, bg_color):
         # sys.exit(1)
 
     center_image = "White_border_circle.png" if bg_color == "white" else "White_bg_circle.png"
-    center_image_path = os.path.join(LOGOS_DIRECTORY_PATH, center_image)
+    center_image_path = os.path.join(LOGOS_DIR_PATH, center_image)
 
     if not center_image_path or center_image_path.strip() == "":
         return qr_image
@@ -286,9 +283,9 @@ def add_title(qr_image, title, bg_color):
         PIL.Image.Image: The QR code image with the title added.
     """
 
-    font_file = select_font(FONTS_DIRECTORY_PATH)
+    font_file = select_font(FONTS_DIR_PATH)
     FONT_SIZE = 60
-    font_file_path = os.path.join(FONTS_DIRECTORY_PATH, font_file)
+    font_file_path = os.path.join(FONTS_DIR_PATH, font_file)
 
     try:
         font = ImageFont.truetype(font_file_path, FONT_SIZE)
@@ -406,13 +403,13 @@ def generate_qrcode():
     while extension is None:
         extension, image_format = extension_menu()
 
-    os.makedirs(QRCODES_DIRECTORY_PATH, exist_ok=True)
-    qr_image_path =  os.path.join(QRCODES_DIRECTORY_PATH, f"{filename}.{extension}")
+    os.makedirs(OUTPUT_DIR_PATH, exist_ok=True)
+    qr_image_path =  os.path.join(OUTPUT_DIR_PATH, f"{filename}.{extension}")
 
     # Handle if QR Code Image has existing filename
     counter = 1
     while os.path.exists(qr_image_path):
-        qr_image_path = os.path.join(QRCODES_DIRECTORY_PATH, f"{filename}({counter}).{extension}")
+        qr_image_path = os.path.join(OUTPUT_DIR_PATH, f"{filename}({counter}).{extension}")
         counter += 1
 
     try:
@@ -449,24 +446,14 @@ if __name__ == "__main__":
 
     FORBIDDEN_CHARS = r'[\/:*?"<>|]'
 
-    if os.getcwd()[-9:] == "Resources":
-        QRCODES_GENERATOR_DIRECTORY_PATH = os.path.join(os.getcwd(), 'QRCode_Generator')
-        FONTS_DIRECTORY_PATH = os.path.join(os.getcwd(), 'Fonts')
+    QRCODES_GENERATOR_DIR_PATH = os.path.abspath(os.path.dirname(__file__))
+    FONTS_DIR_PATH = os.path.join(os.path.dirname(QRCODES_GENERATOR_DIR_PATH), 'Fonts')
 
-    elif os.getcwd()[-16:] == "QRCode_Generator":
-        QRCODES_GENERATOR_DIRECTORY_PATH = os.getcwd()
-        ROOT_REPO_PATH = os.path.join(os.getcwd(), '..')
-        FONTS_DIRECTORY_PATH = os.path.join(ROOT_REPO_PATH, 'Fonts')
-
-    else:
-        print("\nPlease change your working directory to the main repository.\n\nExiting...\n")
-        sys.exit(1)
-
-    LOGOS_DIRECTORY_PATH = os.path.join(QRCODES_GENERATOR_DIRECTORY_PATH, 'Logos')
-    QRCODES_DIRECTORY_PATH = os.path.join(QRCODES_GENERATOR_DIRECTORY_PATH, 'QRCodes')
+    LOGOS_DIR_PATH = os.path.join(QRCODES_GENERATOR_DIR_PATH, 'Logos')
+    OUTPUT_DIR_PATH = os.path.join(QRCODES_GENERATOR_DIR_PATH, 'QRCodes')
 
     print("\n" + " QR Code Generator ".center(29, "-"))
 
     qr_image_path = generate_qrcode()
 
-    print(f"\nQR code \"{qr_image_path[len(QRCODES_GENERATOR_DIRECTORY_PATH) + 1:]}\" created successfully!\n")
+    print(f"\nQR code \"{qr_image_path[len(QRCODES_GENERATOR_DIR_PATH) + 1:]}\" created successfully!\n")
