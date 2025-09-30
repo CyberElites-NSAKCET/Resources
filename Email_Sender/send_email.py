@@ -5,7 +5,7 @@ import logging
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-from socket import gaierror
+from socket import error, gaierror
 
 # Get the parent directory, add it to python path and import the modules
 parent_dir = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
@@ -65,19 +65,16 @@ def send_email(recipient_email, name, subject, body, attachments):
                     attachment_path = os.path.join(ATTACHMENTS_DIRECTORY_PATH, attachment_path)
 
                     add_attachment(msg, attachment_path)
-        try:
-            # Connect to Gmail's SMTP server and send the email
-            with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
-                server.starttls()
-                server.login(SENDER_EMAIL, SENDER_PASSWORD)
-                server.sendmail(
-                    SENDER_EMAIL,
-                    [recipient_email],
-                    msg.as_string(),
-                )
-        except (KeyboardInterrupt, EOFError):
-            print(f"\nKeyboard Interrupt!\n\nEmails not sent form recipient name: \'{name}\'\n\nExiting...\n")
-            sys.exit(1)
+
+        # Connect to Gmail's SMTP server and send the email
+        with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
+            server.starttls()
+            server.login(SENDER_EMAIL, SENDER_PASSWORD)
+            server.sendmail(
+                SENDER_EMAIL,
+                [recipient_email],
+                msg.as_string(),
+            )
 
         # Log success
         logging.info(f"Email sent to {recipient_email}")
@@ -86,8 +83,11 @@ def send_email(recipient_email, name, subject, body, attachments):
     except smtplib.SMTPAuthenticationError as e:
         print(f"Incorrect Gmail App Password!\nAuthentication Failed for \'{SENDER_EMAIL}\' with provided password.\n")
         sys.exit(1)
-    except gaierror as e:
+    except (gaierror, error) as e:
         print(f"Failed to send Emails....\nCheck your Internet connection\nEmails not sent form recipient name: \'{name}\'\n\nExiting...\n")
+        sys.exit(1)
+    except (KeyboardInterrupt, EOFError):
+        print(f"\nKeyboard Interrupt!\n\nEmails not sent form recipient name: \'{name}\'\n\nExiting...\n")
         sys.exit(1)
     except Exception as e:
         # Log failure
