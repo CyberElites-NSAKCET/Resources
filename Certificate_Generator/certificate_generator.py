@@ -2,14 +2,11 @@ import os
 import sys
 
 # Get the parent directory, add it to python path and import the modules
-parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+parent_dir = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 sys.path.append(parent_dir)
 
-try:
-    from Utilities.utils import get_single_file, load_config, read_wordlist, select_font, get_files
-except ImportError:
-    print("\nThis script requires the \'Utilities\' module.\n\nPlease ensure that the script is run from the correct directory.\n\nExiting...\n")
-    sys.exit(1)
+from Utilities.utils import get_files, get_single_file, read_wordlist, select_font
+
 try:
     from PyPDF2 import PdfWriter, PdfReader
     from reportlab.lib.colors import HexColor
@@ -40,8 +37,8 @@ def generate_certificates(template_file_path, wordlist_contents):
         Exception: For any error occurring during certificate generation.
     """
 
-    font_file = select_font(FONTS_DIRECTORY_PATH)
-    font_file_path = os.path.join(FONTS_DIRECTORY_PATH, font_file)
+    font_file = select_font(FONTS_DIR_PATH)
+    font_file_path = os.path.join(FONTS_DIR_PATH, font_file)
 
     try:
         # Register the custom font
@@ -64,14 +61,14 @@ def generate_certificates(template_file_path, wordlist_contents):
         sys.exit(1)
 
     # Define a single temporary file path
-    tmp_file = os.path.join(TEMPORARY_DIRECTORY_PATH, "tmp_file.pdf")
-    os.makedirs(TEMPORARY_DIRECTORY_PATH, exist_ok=True)
+    tmp_file = os.path.join(TEMPORARY_DIR_PATH, "tmp_file.pdf")
+    os.makedirs(TEMPORARY_DIR_PATH, exist_ok=True)
 
     counter = 0
-    output_folder_path = OUTPUT_DIRECTORY_PATH
+    output_folder_path = OUTPUT_DIR_PATH
     while os.path.exists(output_folder_path):
         counter += 1
-        output_folder_path = f"{OUTPUT_DIRECTORY_PATH}({counter})"
+        output_folder_path = f"{OUTPUT_DIR_PATH}({counter})"
 
     os.makedirs(output_folder_path, exist_ok=True)
 
@@ -151,45 +148,34 @@ if __name__ == "__main__":
     """
 
     print("\n" + " Certificate Generator ".center(35, "-"))
-
-    if os.getcwd()[-9:] == "Resources":
-        CERTIFICATE_GENERATOR_DIRECTORY_PATH = os.path.join(os.getcwd(), 'Certificate_Generator')
-        ROOT_REPO_PATH = os.getcwd()
-        FONTS_DIRECTORY_PATH = os.path.join(os.getcwd(), 'Fonts')
-
-    elif os.getcwd()[-21:] == "Certificate_Generator":
-        CERTIFICATE_GENERATOR_DIRECTORY_PATH = os.getcwd()
-        ROOT_REPO_PATH = os.path.join(os.getcwd(), '..')
-        FONTS_DIRECTORY_PATH = os.path.join(ROOT_REPO_PATH, 'Fonts')
-
-    else:
-        print("\nPlease change your working directory to the main repository.\n\nExiting...\n")
-        sys.exit(1)
+    CERTIFICATE_GENERATOR_DIR_PATH = os.path.abspath(os.path.dirname(__file__))
+    ROOT_REPO_PATH = os.path.abspath(os.path.dirname(CERTIFICATE_GENERATOR_DIR_PATH))
+    FONTS_DIR_PATH = os.path.join(ROOT_REPO_PATH, 'Fonts')
+    CERTIFICATE_EMAIL_AUTOMATION_DIR_PATH = os.path.join(ROOT_REPO_PATH, "Certificate_Email_Automation")
 
     automation_script = len(sys.argv) > 1 and sys.argv[1] == "extract_certify_and_email_script"
 
     if automation_script:
-        CERTIFICATE_EMAIL_AUTOMATION_DIRECTORY_PATH = os.path.join(ROOT_REPO_PATH, "Certificate_Email_Automation")
-        DIR_PATH = CERTIFICATE_EMAIL_AUTOMATION_DIRECTORY_PATH
+        DIR_PATH = CERTIFICATE_EMAIL_AUTOMATION_DIR_PATH
     else:
-        DIR_PATH = CERTIFICATE_GENERATOR_DIRECTORY_PATH
+        DIR_PATH = CERTIFICATE_GENERATOR_DIR_PATH
 
-    TEMPLATE_DIRECTORY_PATH = os.path.join(DIR_PATH, "Certificate_Template")
-    WORDLIST_DIRECTORY_PATH = os.path.join(DIR_PATH, "Wordlist")
-    TEMPORARY_DIRECTORY_PATH = os.path.join(DIR_PATH, "tmp")
-    OUTPUT_DIRECTORY_PATH = os.path.join(DIR_PATH, "Generated_Certificates")
+    CERTIFICATE_TEMPLATE_DIR_PATH = os.path.join(DIR_PATH, "Certificate_Template")
+    WORDLIST_DIR_PATH = os.path.join(DIR_PATH, "Wordlist")
+    TEMPORARY_DIR_PATH = os.path.join(DIR_PATH, "tmp")
+    OUTPUT_DIR_PATH = os.path.join(DIR_PATH, "Generated_Certificates")
 
-    os.makedirs(TEMPLATE_DIRECTORY_PATH, exist_ok=True)
-    os.makedirs(WORDLIST_DIRECTORY_PATH, exist_ok=True)
-    os.makedirs(FONTS_DIRECTORY_PATH, exist_ok=True)
+    os.makedirs(CERTIFICATE_TEMPLATE_DIR_PATH, exist_ok=True)
+    os.makedirs(WORDLIST_DIR_PATH, exist_ok=True)
+    os.makedirs(FONTS_DIR_PATH, exist_ok=True)
 
-    pdf_files = get_files(TEMPLATE_DIRECTORY_PATH, 'PDF')
-    template_file = get_single_file('Certificate_Template', TEMPLATE_DIRECTORY_PATH, 'PDF')
-    template_file_path = os.path.join(TEMPLATE_DIRECTORY_PATH, template_file)
+    pdf_files = get_files(CERTIFICATE_TEMPLATE_DIR_PATH, 'PDF')
+    template_file = get_single_file('Certificate_Template', CERTIFICATE_TEMPLATE_DIR_PATH, 'PDF')
+    template_file_path = os.path.join(CERTIFICATE_TEMPLATE_DIR_PATH, template_file)
 
-    text_files = get_files(WORDLIST_DIRECTORY_PATH, 'TXT')
-    wordlist_file = get_single_file('Wordlist', WORDLIST_DIRECTORY_PATH, 'TXT')
-    wordlist_file_path = os.path.join(WORDLIST_DIRECTORY_PATH, wordlist_file)
+    text_files = get_files(WORDLIST_DIR_PATH, 'TXT')
+    wordlist_file = get_single_file('Wordlist', WORDLIST_DIR_PATH, 'TXT')
+    wordlist_file_path = os.path.join(WORDLIST_DIR_PATH, wordlist_file)
 
     # Read and print the contents of the file
     wordlist_contents = read_wordlist(wordlist_file_path)
@@ -204,12 +190,14 @@ if __name__ == "__main__":
         sys.exit(1)
 
     if certificate_type == 1:    # Membership_Certificate
+        # Adjust these parameters as per your requirements
         FONT_SIZE = 31.5
         FONT_COLOR = "#55D3E2"
         POSITION = (421, 264)
         CHAR_SPACING = 1.5
 
     elif certificate_type == 2:    # Event_Certificate
+        # Adjust these parameters as per your requirements
         FONT_SIZE = 34
         FONT_COLOR = "#ffffff"
         POSITION = (421, 242)
@@ -222,8 +210,8 @@ if __name__ == "__main__":
 
     # Check command-line arguments
     if automation_script:
-        gen_certs_dir_path = os.path.join(os.path.join(ROOT_REPO_PATH, "Certificate_Email_Automation"), "gen_certs_dir_path.txt")
+        gen_certs_dir_path = os.path.join(CERTIFICATE_EMAIL_AUTOMATION_DIR_PATH, "gen_certs_dir_path.txt")
         with open(gen_certs_dir_path, "w") as file:
             file.write(certificates_dir)
 
-    print("\n\nCertificates generation successfull!\n\nSaved all certificates to \"" + certificates_dir[certificates_dir.find("Resources")+10:] + "\" directory.\n")
+    print("\n\nCertificates generation successfull!\n\nSaved all certificates to \"" + os.path.basename(certificates_dir) + "\" directory.\n")
