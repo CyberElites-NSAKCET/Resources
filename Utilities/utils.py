@@ -1,7 +1,8 @@
+import os
+import re
 import csv
 import json
 import logging
-import os
 from email import encoders
 from email.mime.base import MIMEBase
 
@@ -69,6 +70,8 @@ def check_attachments(csv_file_path, attachments_dir_path=None, attachment_mode=
     Exits:
         Exits the program if attachments are missing or improperly specified.
     """
+    if not automation_dir_path:
+        print("\nChecking the attachments as per the provided Attachment Mode in config file...")
 
     with open(csv_file_path, "r", encoding="utf-8") as csv_file:
         csv_file.seek(0)  # Reset file pointer
@@ -82,16 +85,16 @@ def check_attachments(csv_file_path, attachments_dir_path=None, attachment_mode=
                 if first_row["Attachments"]:
                     common_attachments = (first_row["Attachments"].split(";"))
                 else:
-                    print(f"\nThe first row attachment is not specified for the selected Attachment Mode \'Common\'\n")
+                    print(f"Error:\nSelected Attachment Mode \'Common\': But the first row attachment is not specified.\n")
                     exit(1)
                 for attachment in common_attachments:
                     if not attachment or attachment.strip() == "":
                         is_missing = True
-                        print(f"\nThe first row attachment is not specified for the selected Attachment Mode \'Common\'")
+                        print(f"Error:\nSelected Attachment Mode \'Common\': But the first row attachment is not specified.\n")
                     attachment_path = os.path.join(attachments_dir_path, attachment)
                     if not os.path.exists(attachment_path):
                         is_missing = True
-                        print(f"\nCommon attachment of first row not found - {attachment}")
+                        print(f"Error:\nCommon attachment of first row not found in the Attachments Directory - {attachment}")
 
         elif attachment_mode == "Respective":
             missing_files =[]
@@ -123,6 +126,9 @@ def check_attachments(csv_file_path, attachments_dir_path=None, attachment_mode=
         if is_missing:
             print("\nExiting...\n")
             exit(1)
+    if not automation_dir_path:
+        print("Attachments check completed successfully!\nDONE!")
+
 
 ## --------------------------------------------------------------------------
 # Function to strip fieldnames and remove any colons
@@ -134,29 +140,49 @@ def clean_csv_fieldnames(file_path):
     Args:
         file_path (str): Path to the CSV file.
     """
+    print("\nCleaning field names in the CSV file...")
     try:
         # Read the file content
         with open(file_path, 'r', encoding='utf-8') as txt_file:
             rows = txt_file.readlines()
 
         if not rows:
-            print("\nThe file is empty! Nothing to process.\n")
-            return
+            print("The CSV file is empty!\nNo valid rows found in the CSV file.\n")
+            exit(1)
 
         # Process the header row
         header = rows.pop(0).strip()
-        cleaned_header = ",".join(
-            field.strip().rstrip(":").strip() for field in header.split(",")
-        )
+        cleaned_header = [field.strip().rstrip(":").strip() for field in header.split(",")]
+
+        # Check for duplicate fieldnames
+        duplicates = set([field for field in cleaned_header if cleaned_header.count(field) > 1])
+        if duplicates:
+            print(f"Error: Duplicate fieldnames found in header: {', '.join(duplicates)}\n\nExiting...\n")
+            exit(1)
+
+        # corrected_header = []
+        # for field in cleaned_header:
+        #     if field.lower() in ["full name", "fullname", "full_name", "full-name", "name", "fulname"]:
+        #         corrected_header.append("Full Name")
+        #     elif field.lower() in ["email", "e-mail", "e_mail", "mail", "emailaddress", "email_address", "email-address", "email id", "emailid", "email_id", "email-id"]:
+        #         corrected_header.append("Email")
+        #     elif field.lower() in ["attachments", "attachment"]:
+        #         corrected_header.append("Attachments")
+        #     elif field.lower() in ["attendance", "attendence", "attandance", "attandence"]:
+        #         corrected_header.append("Attendance")
+        #     else:
+        #         corrected_header.append(field)
+
+        corrected_header = ",".join(cleaned_header)
 
         # Combine the cleaned header with the rest of the rows
-        updated_rows = [cleaned_header] + ["\n"] + rows
+        updated_rows = [corrected_header] + ["\n"] + rows
 
         # Write the updated content back to the file
         with open(file_path, 'w', encoding='utf-8') as txt_file:
             txt_file.writelines(updated_rows)
 
-        print("\nField names cleaned successfully! Whitespace and trailing colons removed from the header.\n")
+        print("Field names cleaned successfully! Whitespace and trailing colons removed from the header.\nDONE!")
 
     except Exception as e:
         print(f"\nError processing the file:\n{e}\n")
@@ -217,7 +243,7 @@ def check_csv(csv_file_path, attachment_mode, additional_column=None):
     Exits:
         Exits the program if the CSV file is missing required columns, contains invalid rows, or is corrupted.
     """
-
+    print("\nChecking the CSV file for required columns and data integrity...")
     # Open the CSV file
     with open(csv_file_path, "r", encoding="utf-8") as csv_file:
         csv_file.seek(0)
@@ -226,13 +252,13 @@ def check_csv(csv_file_path, attachment_mode, additional_column=None):
             # Check if the file is not empty and contains rows after the header
             rows = list(reader)
         except:
-            print("\nError in reading CSV file.\nEnsure that the file is not corrupted.\n\nExiting...\n")
+            print("Error in reading CSV file.\nEnsure that the file is not corrupted.\n\nExiting...\n")
             exit(1)
 
         csv_file.seek(0)
         reader = csv.DictReader(csv_file)
         if not rows or not reader.fieldnames:  # If rows is empty, only the header or completely empty file
-            print("\nThe CSV file is either empty or only contains the header.\n")
+            print("The CSV file is either empty or only contains the header.\n")
             exit(1)
 
         csv_file.seek(0)
@@ -243,12 +269,12 @@ def check_csv(csv_file_path, attachment_mode, additional_column=None):
         missing_columns = required_columns - set(reader.fieldnames or [])
         try:
             if missing_columns:
-                raise ValueError(f"\nMissing required columns in the CSV file: {', '.join(missing_columns)}\n")
+                raise ValueError(f"\nMissing required columns in the CSV file: [{', '.join(missing_columns)}]\n")
 
             if attachment_mode in {"Respective", "Common"} and "Attachments" not in reader.fieldnames:
-                raise ValueError(f"\nThe 'Attachments' column is required for the selected ATTACHMENT_MODE i.e \'{attachment_mode}\'\n")
+                raise ValueError(f"The 'Attachments' column is required for the selected ATTACHMENT_MODE i.e \'{attachment_mode}\'\n")
         except Exception as e:
-            print(f"\nError:{e}")
+            print(f"Error:{e}")
             exit(1)
 
         csv_file.seek(0)
@@ -262,6 +288,8 @@ def check_csv(csv_file_path, attachment_mode, additional_column=None):
                 continue
             if row.get("Full Name", "").strip() == "" or row.get("Email", "").strip() == "":
                 invalid_rows.append(row_index)
+            if additional_column and (not row.get(additional_column, "") or row.get(additional_column, "").strip() == "" or row.get(additional_column, "").strip().upper() not in {"TRUE", "FALSE"}):
+                invalid_rows.append(row_index)
 
             email = row.get("Email", "").strip()
             # Map emails to their row indices and associated names
@@ -273,7 +301,10 @@ def check_csv(csv_file_path, attachment_mode, additional_column=None):
         duplicate_emails = {email: details for email, details in email_map.items() if len(details["indices"]) > 1}
 
         if invalid_rows or duplicate_emails:
-            if invalid_rows:
+            if invalid_rows and additional_column:
+                print(f"\nFull Name, Email or {additional_column} not found in Row Index - {invalid_rows}\n")
+
+            elif invalid_rows:
                 print(f"\nFull Name or Email not found in Row Index - {invalid_rows}\n")
 
             if duplicate_emails:
@@ -285,6 +316,7 @@ def check_csv(csv_file_path, attachment_mode, additional_column=None):
 
             print("\nExiting...\n")
             exit(1)
+        print("CSV file check completed successfully!\nDONE!")
 
 
 ## --------------------------------------------------------------------------
@@ -334,7 +366,7 @@ def get_files(directory, extension):
     try:
         files_list = [file for file in os.listdir(directory) if file.endswith(f'.{extension.lower()}')]
     except FileNotFoundError as e:
-        print(f"\nError reading template file: {e}")
+        print(f"\nError reading file: {e}")
         exit(1)
 
     return files_list
@@ -402,14 +434,14 @@ def initialize_necessary_files(body_template_file=None, log_file=None):
 
                     f.write(default_html_code)
 
+
 ## --------------------------------------------------------------------------
 # Function to read config.json file
-def load_config(filename="config.json"):
+def load_config(filename):
   """Loads configuration from a JSON file in the project root directory.
 
   Args:
-      filename (str, optional): The filename of the configuration file.
-          Defaults to "config.json".
+      filename (str): The filename of the configuration file.
 
   Returns:
       dict, None: A dictionary containing the loaded configuration,
@@ -419,21 +451,30 @@ def load_config(filename="config.json"):
       Exception: If an error occurs while reading the JSON file.
   """
 
-  project_root = os.path.abspath(os.path.dirname(__file__))
-  config_path = os.path.join(os.path.join(project_root, ".."), filename)
-
   try:
-    with open(config_path, 'r') as json_config_file:
+    with open(filename, 'r') as json_config_file:
       return json.load(json_config_file)
   except FileNotFoundError:
-    print(f"Error: Config file '{config_path}' not found.")
+    print(f"Error: Config file '{os.path.basename(filename)}' not found.")
+    config = {
+            "sender_email": "",
+            "gmail_app_password": "",
+            "email_subject": ""
+        }
+    if os.path.basename(filename) != "cert-email_config.json":
+        config["attachment_mode"] = ""
+    with open(filename, 'w') as json_config_file:
+        json.dump(config, json_config_file, indent=4)
+
+    print(f"A new config file '{filename}' has been created. Please fill in the required details and run the script again.")
     exit(1)
   except json.JSONDecodeError:
-    print(f"Error: Invalid JSON format in '{config_path}'.")
+    print(f"Error: Invalid JSON format in '{filename}'.")
     exit(1)
   except Exception as e:
     print(f"An error occurred while reading the config file: {e}")
     exit(1)
+
 
 ## --------------------------------------------------------------------------
 # === FUNCTION: READ EMAIL BODY TEMPLATE ===
@@ -554,8 +595,9 @@ def sort_csv(file_path):
     Exits:
         Exits the program if the file is empty, corrupted, or cannot be sorted.
     """
-
+    print("\nSorting the CSV file based on 'Full Name' column...")
     try:
+        FORBIDDEN_CHARS = r'[\/:*?"<>|]'
         # Read the file and split into lines
         with open(file_path, 'r', encoding='utf-8') as txt_file:
             rows = txt_file.readlines()
@@ -563,12 +605,25 @@ def sort_csv(file_path):
         # Extract header and data rows
         header = rows.pop(0).strip()
         data_rows = [row.strip() for row in rows if row.strip()]
+        # Check each row for forbidden characters
+        line_error = False
+        for line_number, line in enumerate(data_rows, start=2):
+            if re.search(FORBIDDEN_CHARS, line):
+                print(f"Error: Full Name contains forbidden characters on - line {line_number}: ('{line.split(',')[1].strip()}').")
+                line_error = True
+
+        if line_error:
+            print("\nPlease remove any of the following characters from the Full Names: < > \" ? | / \\ : *\n\nExiting...\n")
+            exit(1)
+    except UnicodeError as e:
+        print(f"Error in reading CSV file!\nPlease ensure that the file is UTF-8 encoded and not corrupted.\n\nExiting...\n")
+        exit(1)
     except Exception as e:
-        print(f"\nError in reading TXT file!\nPlease ensure that the file is not corrupted.\n\nExiting...\n")
+        print(f"Error in reading CSV file!\nPlease ensure that the file is not corrupted.\n\nExiting...\n")
         exit(1)
 
     if not data_rows:
-        print("\nEmpty CSV file!\nNo valid rows in the file to sort!\n\nExiting...\n")
+        print("No valid data rows in the CSV file to sort!\n\nExiting...\n")
         exit(1)
 
     # Split the header into columns and find the index of "Full Name"
@@ -576,7 +631,7 @@ def sort_csv(file_path):
     try:
         name_column_index = columns.index("Full Name")
     except ValueError:
-        print("\n'Full Name' column not found in the file header!\n\nExiting...\n")
+        print("'Full Name' column not found in the file header!\n\nExiting...\n")
         exit(1)
 
     # Sort the data rows based on the "Full Name" field
@@ -588,13 +643,13 @@ def sort_csv(file_path):
     # Combine header with sorted data
     sorted_rows = [header] + sorted_data
     try:
-
         # Overwrite the file with sorted data
         with open(file_path, 'w', encoding='utf-8') as txt_file:
             txt_file.write('\n'.join(sorted_rows))
+        print("CSV file sorted successfully based on 'Full Name' column.\nDONE!")
 
     except Exception as e:
-        print(f"\nError sorting the file.\nMake sure that the file isn't open!\n{e}\nExiting...\n")
+        print(f"Error sorting the file.\nMake sure that the file isn't open!\n{e}\nExiting...\n")
         exit(1)
 
 
@@ -618,6 +673,9 @@ def sort_wordlist(file_path):
         # Read the names from the file
         with open(file_path, 'r') as file:
             names = file.readlines()
+    except UnicodeError as e:
+        print(f"\nError in reading TXT wordlist!\nThe file has some invalid characters or is not UTF-8 encoded. Please review the file and try again.\n\nExiting...\n")
+        exit(1)
     except:
         print("\nError in reading TXT wordlist!\nPlease ensure that the file is not corrupted.\n\nExiting...\n")
         exit(1)
