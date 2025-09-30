@@ -243,48 +243,45 @@ if __name__ == "__main__":
     """
 
     print("\n" + " Email Sender ".center(24, "-"))
-
-    if os.getcwd()[-9:] == "Resources":
-        EMAIL_SENDER_DIRECTORY_PATH = os.path.join(os.getcwd(), 'Email_Sender')
-        ROOT_REPO_PATH = os.getcwd()
-
-    elif os.getcwd()[-12:] == "Email_Sender":
-        EMAIL_SENDER_DIRECTORY_PATH = os.getcwd()
-        ROOT_REPO_PATH = os.path.join(os.getcwd(), '..')
-
-    else:
-        print("\nPlease change your working directory to the main repository.\n\nExiting...\n")
-        sys.exit(1)
-
-    config = load_config()
-    # === CONFIGURATION ===
-    SMTP_SERVER = config.get("smtp_server")
-    SMTP_PORT = config.get("smtp_port")
-    SENDER_EMAIL = config.get("sender_email")
-    EMAIL_SUBJECT = config.get("email_subject")
-    SENDER_PASSWORD = config.get("gmail_app_password")
-    ATTACHMENT_MODE = config.get("attachment_mode")
+    EMAIL_SENDER_DIRECTORY_PATH = os.path.abspath(os.path.dirname(__file__))
+    ROOT_REPO_PATH = os.path.abspath(os.path.dirname(EMAIL_SENDER_DIRECTORY_PATH))
+    CERTIFICATE_EMAIL_AUTOMATION_DIR_PATH = os.path.join(ROOT_REPO_PATH, "Certificate_Email_Automation")
 
     automation_script = len(sys.argv) > 1 and sys.argv[1] == "extract_certify_and_email_script"
 
-    if not automation_script and ATTACHMENT_MODE == "Other":
-        print("\nInvalid Attachment mode specified for the Email_Sender code.\nThis mode is explicitly for the automation script\n\nPlease select from \"None\", \"Common\" or \"Respective\"\n\nExiting..\n")
-        sys.exit(1)
+    SMTP_SERVER = "smtp.gmail.com"
+    SMTP_PORT = 587
 
     if automation_script:
-        CERTIFICATE_EMAIL_AUTOMATION_DIR_PATH = os.path.join(ROOT_REPO_PATH, "Certificate_Email_Automation")
+        config = load_config(os.path.join(CERTIFICATE_EMAIL_AUTOMATION_DIR_PATH, "cert-email_config.json"))
+    else:
+        config = load_config(os.path.join(EMAIL_SENDER_DIRECTORY_PATH, "email_config.json"))
+
+    # === CONFIGURATION ===
+    SENDER_EMAIL = config.get("sender_email", "").strip()
+    EMAIL_SUBJECT = config.get("email_subject", "").strip()
+    SENDER_PASSWORD = config.get("gmail_app_password")
+
+    if automation_script:
         DIR_PATH = CERTIFICATE_EMAIL_AUTOMATION_DIR_PATH
-        CSV_FILE_PATH = os.path.join(CERTIFICATE_EMAIL_AUTOMATION_DIR_PATH, "tosend.csv")
+        CSV_FILE_PATH = os.path.join(DIR_PATH, "tosend.csv")
+        BODY_TEMPLATE_FILE_PATH = os.path.join(DIR_PATH, "cert-email_html_body_template.html")
+        LOG_FILE_PATH = os.path.join(DIR_PATH, "cert-email_log.txt")
         ATTACHMENT_MODE = "Other"
     else:
         DIR_PATH = EMAIL_SENDER_DIRECTORY_PATH
-        ATTACHMENTS_DIRECTORY_PATH = os.path.join(EMAIL_SENDER_DIRECTORY_PATH, "Attachments")
-        SPREADSHEET_DIRECTORY_PATH = os.path.join(EMAIL_SENDER_DIRECTORY_PATH, "Spreadsheet")
+        ATTACHMENTS_DIRECTORY_PATH = os.path.join(DIR_PATH, "Attachments")
+        SPREADSHEET_DIRECTORY_PATH = os.path.join(DIR_PATH, "Spreadsheet")
+        BODY_TEMPLATE_FILE_PATH = os.path.join(DIR_PATH, "email_html_body_template.html")
+        LOG_FILE_PATH = os.path.join(DIR_PATH, "email_log.txt")
+        ATTACHMENT_MODE = config.get("attachment_mode")
+
         os.makedirs(ATTACHMENTS_DIRECTORY_PATH, exist_ok=True)
         os.makedirs(SPREADSHEET_DIRECTORY_PATH, exist_ok=True)
 
-    BODY_TEMPLATE_FILE_PATH = os.path.join(DIR_PATH, "body_template.html")
-    LOG_FILE_PATH = os.path.join(DIR_PATH, "email_log.txt")
+        if SENDER_EMAIL == "" or EMAIL_SUBJECT in ["", "Subject"]:
+            print("\nError: Please configure all fields in the config file before running the script.\n\nExiting...\n")
+            sys.exit(1)
 
     initialize_necessary_files(BODY_TEMPLATE_FILE_PATH) if not automation_script else initialize_necessary_files(log_file=LOG_FILE_PATH)
 
@@ -296,13 +293,17 @@ if __name__ == "__main__":
 
     check_body_template(BODY_TEMPLATE_FILE_PATH)
 
+    if ATTACHMENT_MODE not in ["None", "Common", "Respective", "Other"]:
+        print("\nInvalid Attachment Mode specified in the config file!\nPlease select among \'Respective\',\'Common\' or \'None\'.\n\nExiting...\n")
+        sys.exit(1)
+
     # Check command-line arguments
     if automation_script:
-        check_attachments(CSV_FILE_PATH, attachment_mode=ATTACHMENT_MODE,automation_dir_path=CERTIFICATE_EMAIL_AUTOMATION_DIR_PATH)
+        check_attachments(CSV_FILE_PATH, attachment_mode=ATTACHMENT_MODE, automation_dir_path=CERTIFICATE_EMAIL_AUTOMATION_DIR_PATH)
     else:
         clean_csv_fieldnames(CSV_FILE_PATH)
-        sort_csv(CSV_FILE_PATH)
         check_csv(CSV_FILE_PATH, ATTACHMENT_MODE)
+        sort_csv(CSV_FILE_PATH)
         check_attachments(CSV_FILE_PATH, ATTACHMENTS_DIRECTORY_PATH, ATTACHMENT_MODE)
         initialize_necessary_files(log_file=LOG_FILE_PATH)
 
