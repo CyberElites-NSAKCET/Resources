@@ -91,7 +91,7 @@ def send_email(recipient_email, name, subject, body, attachments):
         print(f"Incorrect Gmail App Password!\nAuthentication Failed for \'{SENDER_EMAIL}\' with provided password.\n")
         sys.exit(1)
     except gaierror as e:
-        print("Failed to send Emails....\nCheck your Internet connection\nEmails not sent form recipient name: \'{name}\'\n\nExiting...\n")
+        print(f"Failed to send Emails....\nCheck your Internet connection\nEmails not sent form recipient name: \'{name}\'\n\nExiting...\n")
         sys.exit(1)
     except Exception as e:
         # Log failure
