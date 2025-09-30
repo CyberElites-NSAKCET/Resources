@@ -143,7 +143,7 @@ def clean_csv_fieldnames(file_path):
     print("\nCleaning field names in the CSV file...")
     try:
         # Read the file content
-        with open(file_path, 'r', encoding='utf-8') as txt_file:
+        with open(file_path, 'r') as txt_file:
             rows = txt_file.readlines()
 
         if not rows:
@@ -183,6 +183,10 @@ def clean_csv_fieldnames(file_path):
             txt_file.writelines(updated_rows)
 
         print("Field names cleaned successfully! Whitespace and trailing colons removed from the header.\nDONE!")
+
+    except UnicodeError as e:
+        print(f"\nError in reading CSV file!\nThe file has some invalid characters or is not UTF-8 encoded. Please review the file and try again.\n\nExiting...\n")
+        exit(1)
 
     except Exception as e:
         print(f"\nError processing the file:\n{e}\n")
@@ -616,7 +620,7 @@ def sort_csv(file_path):
             print("\nPlease remove any of the following characters from the Full Names: < > \" ? | / \\ : *\n\nExiting...\n")
             exit(1)
     except UnicodeError as e:
-        print(f"Error in reading CSV file!\nPlease ensure that the file is UTF-8 encoded and not corrupted.\n\nExiting...\n")
+        print(f"Error in reading CSV file!\nThe file has some invalid characters or is not UTF-8 encoded. Please review the file and try again.\n\nExiting...\n")
         exit(1)
     except Exception as e:
         print(f"Error in reading CSV file!\nPlease ensure that the file is not corrupted.\n\nExiting...\n")
