@@ -81,12 +81,15 @@ def send_email(recipient_email, name, subject, body, attachments):
         print(f"Email sent to {recipient_email}")
 
     except smtplib.SMTPAuthenticationError as e:
+        logging.error(f"Authentication failed for {SENDER_EMAIL} with provided password")
         print(f"Incorrect Gmail App Password!\nAuthentication Failed for \'{SENDER_EMAIL}\' with provided password.\n")
         sys.exit(1)
     except (gaierror, error) as e:
+        logging.error(f"Network error occurred while sending email to {recipient_email}")
         print(f"Failed to send Emails....\nCheck your Internet connection\nEmails not sent form recipient name: \'{name}\'\n\nExiting...\n")
         sys.exit(1)
     except (KeyboardInterrupt, EOFError):
+        logging.error(f"Email sending interrupted for recipient name: {name}")
         print(f"\nKeyboard Interrupt!\n\nEmails not sent form recipient name: \'{name}\'\n\nExiting...\n")
         sys.exit(1)
     except Exception as e:
