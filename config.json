@@ -1,8 +1,0 @@
-{
-    "smtp_server": "smtp.gmail.com",
-    "smtp_port": 587,
-    "sender_email": "cyberelites.nsakcet@gmail.com",
-    "gmail_app_password": "",
-    "email_subject": "Subject",
-    "attachment_mode": "None"
-}
