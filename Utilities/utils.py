@@ -155,9 +155,9 @@ def clean_csv_fieldnames(file_path):
         cleaned_header = [field.strip().rstrip(":").strip() for field in header.split(",")]
 
         # Check for duplicate fieldnames
-        duplicates = set([field for field in cleaned_header if cleaned_header.count(field) > 1])
+        duplicates = set([field for field in cleaned_header if cleaned_header.count(field) > 1 and field != ""])
         if duplicates:
-            print(f"Error: Duplicate fieldnames found in header: {', '.join(duplicates)}\n\nExiting...\n")
+            print(f"Error: Duplicate fieldnames found in header: [{', '.join(duplicates)}]\n\nExiting...\n")
             exit(1)
 
         # corrected_header = []
