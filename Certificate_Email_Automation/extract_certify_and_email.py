@@ -55,7 +55,7 @@ def extract_spreadsheet(spreadsheet_file_path, tosend_csv_path, wordlist_file_pa
                     for row in reader:
                         if row['Attendance'].strip().upper() == 'TRUE':  # Check Attendance
                             full_name = row['Full Name'].strip().title()
-                            csv_writer.writerow([full_name, row['Email']])
+                            csv_writer.writerow([full_name, row['Email'].strip()])
                             wordlist_file.write(f"{full_name}\n")
                     print("\n\'Full Name\' column successfully written to wordlist file.")
 
