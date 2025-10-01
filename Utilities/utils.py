@@ -175,8 +175,10 @@ def clean_csv_fieldnames(file_path):
 
         corrected_header = ",".join(cleaned_header)
 
+        data_rows = [row.strip() + "\n" for row in rows if row.strip() != ""]
+
         # Combine the cleaned header with the rest of the rows
-        updated_rows = [corrected_header] + ["\n"] + rows
+        updated_rows = [corrected_header + "\n"] + data_rows
 
         # Write the updated content back to the file
         with open(file_path, 'w', encoding='utf-8') as txt_file:
