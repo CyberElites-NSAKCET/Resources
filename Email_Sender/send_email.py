@@ -146,7 +146,12 @@ def send_bulk_emails(csv_file_path, body_template_file):
             csv_file.seek(0)  # Reset file pointer
             reader = csv.DictReader(csv_file)  # Reinitialize reader
 
-            print("\nSending emails to recipients.....\n")
+            confirm_send = input(f"\n\nYou are about to send emails to the recipients listed in the CSV file: \'{os.path.basename(csv_file_path)}\'\n\nType \'yes\' to confirm and proceed: ").strip().lower()
+            if confirm_send not in ["yes", "y"]:
+                print("\nEmail sending operation cancelled by the user.\n\nExiting...\n")
+                sys.exit(0)
+
+            print("\n\nSending emails to recipients.....\n")
 
             row_index = 2
             for row in reader:
