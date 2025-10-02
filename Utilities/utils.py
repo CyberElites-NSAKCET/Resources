@@ -541,27 +541,41 @@ def read_wordlist(file_path):
         Exits the program if the wordlist contains invalid characters or is empty.
     """
 
-    forbidden_chars = set('<>\"?|/\\:*')
+    valid_chars = set(string.ascii_letters + " ")
 
-    names = sort_wordlist(file_path)
-
-    # Check each name for forbidden characters
-    line_error = False
-    print()
-    for line_number, line in enumerate(names, start=1):
-        if any(char in forbidden_chars for char in line):
-            print(f"Error: The wordlist file contains forbidden characters on - line {line_number}: ('{line.strip()}').")
-            line_error = True
-
-    if line_error:
-        print("Please remove any of the following characters from the wordlist: < > \" ? | / \\ : *\n\nExiting...\n")
+    try:
+        with open(file_path, "r") as file:
+            lines = file.readlines()
+    except UnicodeError as e:
+        print(f"\nError in reading TXT wordlist!\nThe file has some invalid characters or is not UTF-8 encoded. Please review the file and try again.\n\nExiting...\n")
+        exit(1)
+    except:
+        print("\nError in reading TXT wordlist!\nPlease ensure that the file is not corrupted.\n\nExiting...\n")
         exit(1)
 
-    if not names:
-        print("\nEmpty Wordlist file!\nEnsure that Wordlist TXT files has correct Names.\n\nExiting...\n")
+    non_empty = [line.strip() for line in lines if line.strip()]
+
+    if not non_empty:
+        print("\nError: Wordlist is empty or only contained blank lines.\n\nExiting...\n")
         exit(1)
 
-    return names
+    errors = []
+    for index, name in enumerate(non_empty, start=1):
+        if not all(char in valid_chars for char in name):
+            errors.append(f"Line {index}: '{name}'")
+
+    if errors:
+        print("\nError: Invalid entries in wordlist (only letters and spaces allowed):")
+        print("\n".join(errors))
+        print("\nExiting...\n")
+        exit(1)
+
+    sorted_names = sorted(non_empty, key=str.title)
+
+    with open(file_path, "w", encoding="utf-8") as file:
+        file.write("\n".join(sorted_names))
+
+    return sorted_names
 
 
 ## --------------------------------------------------------------------------
