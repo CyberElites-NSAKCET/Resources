@@ -2,10 +2,10 @@ import os
 import re
 import csv
 import json
-import string
 import logging
 from email import encoders
 from email.mime.base import MIMEBase
+from string import ascii_letters
 
 
 default_html_code = """<!-- <html>
@@ -541,7 +541,7 @@ def read_wordlist(file_path):
         Exits the program if the wordlist contains invalid characters or is empty.
     """
 
-    valid_chars = set(string.ascii_letters + " ")
+    valid_chars = set(ascii_letters + " ")
 
     try:
         with open(file_path, "r") as file:
@@ -553,24 +553,24 @@ def read_wordlist(file_path):
         print("\nError in reading TXT wordlist!\nPlease ensure that the file is not corrupted.\n\nExiting...\n")
         exit(1)
 
-    non_empty = [line.strip() for line in lines if line.strip()]
+    non_empty_lines = [line.strip() for line in lines if line.strip()]
 
-    if not non_empty:
+    if not non_empty_lines:
         print("\nError: Wordlist is empty or only contained blank lines.\n\nExiting...\n")
         exit(1)
 
     errors = []
-    for index, name in enumerate(non_empty, start=1):
+    for index, name in enumerate(non_empty_lines, start=1):
         if not all(char in valid_chars for char in name):
             errors.append(f"Line {index}: '{name}'")
 
     if errors:
-        print("\nError: Invalid entries in wordlist (only letters and spaces allowed):")
+        print("\nError: Invalid names in wordlist (only alphabets and spaces allowed):")
         print("\n".join(errors))
         print("\nExiting...\n")
         exit(1)
 
-    sorted_names = sorted(non_empty, key=str.title)
+    sorted_names = sorted(non_empty_lines, key=str.title)
 
     with open(file_path, "w", encoding="utf-8") as file:
         file.write("\n".join(sorted_names))
