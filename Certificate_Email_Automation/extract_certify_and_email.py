@@ -14,6 +14,19 @@ from Utilities.utils import check_body_template, check_csv, check_gmail_app_pass
 
 # Function to check active participants or valid attendance
 def check_attendance(csv_file_path):
+    """
+    Function to check active participants or valid attendance
+
+    Args:
+        csv_file_path (str): Path to the CSV file containing participant data.
+
+    Returns:
+        None
+
+    Exits:
+        Exits the program if no participant is marked 'Present' (i.e., "TRUE")
+        under the 'Attendance' column.
+    """
     attendance_data = []
 
     with open(csv_file_path, mode='r', newline='', encoding='utf-8') as file:
