@@ -57,10 +57,9 @@ def extract_spreadsheet(spreadsheet_file_path, tosend_csv_path, wordlist_file_pa
                             full_name = row['Full Name'].strip().title()
                             csv_writer.writerow([full_name, row['Email'].strip()])
                             wordlist_file.write(f"{full_name}\n")
-                    print("\n\'Full Name\' column successfully written to wordlist file.")
+                    print("\n\'Full Name\' column successfully written to 'Wordlist\\wordlist.txt' file.")
 
                 print("\'Full Name\' and \'Email\' columns successfully extracted to \'tosend.csv\' file.")
-            print("\nSuccessfully extracted the spreadsheet file.\n")
         except PermissionError:
             print("\nFailed to write to \"tosend.csv\" file.\nEnsure that the file is not open on the system.\n")
             sys.exit(1)
@@ -170,6 +169,7 @@ if __name__ == "__main__":
 
     extract_spreadsheet(spreadsheet_file_path, tosend_csv_path, wordlist_file_path)
 
+    print("\nSorting extracted 'tosend.csv' file contents:",end='')
     sort_csv(tosend_csv_path)
 
     try:
