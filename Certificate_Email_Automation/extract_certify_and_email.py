@@ -6,7 +6,7 @@ import sys
 parent_dir = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 sys.path.append(parent_dir)
 
-from Utilities.utils import check_body_template, check_csv, check_gmail_app_password, clean_csv_fieldnames, get_files, get_single_file, initialize_necessary_files, load_config, sort_csv
+from Utilities.utils import check_attendance, check_body_template, check_csv, check_gmail_app_password, clean_csv_fieldnames, get_files, get_single_file, initialize_necessary_files, load_config, sort_csv
 
 
 ## ===========================================================================
@@ -163,6 +163,8 @@ if __name__ == "__main__":
 
     # Open the file and ensure it has the correct contents as needed
     check_csv(spreadsheet_file_path, "Other", "Attendance")
+
+    check_attendance(spreadsheet_file_path)
 
     sort_csv(spreadsheet_file_path)
 
