@@ -2,6 +2,7 @@ import os
 import re
 import csv
 import json
+import string
 import logging
 from email import encoders
 from email.mime.base import MIMEBase
@@ -703,8 +704,34 @@ def sort_wordlist(file_path):
         print("\nError in reading TXT wordlist!\nPlease ensure that the file is not corrupted.\n\nExiting...\n")
         exit(1)
 
-    # Strip whitespace and sort the names
-    sorted_names = sorted(name.title().strip() for name in names if name.strip())
+    valid_chars = string.ascii_letters + ' '
+    valid_names = []
+    invalid_names = []
+
+    for name in names:
+        stripped_name = name.strip()
+        if not stripped_name:
+            continue  # Skip empty lines
+
+        # Check if ALL characters in the stripped_name are either alphabetic or a space
+        is_valid_name = all(char in valid_chars for char in stripped_name)
+
+        if is_valid_name:
+            valid_names.append(stripped_name.title())
+        else:
+            invalid_names.append(stripped_name)
+
+    if invalid_names:
+        print(f"\nInvalid names in wordlist file:\nNames with invalid characters (Numbers or Symbols) -", invalid_names)
+        print("\nPlease ensure all entries contain ONLY upper/lower case letters and spaces.\n\nExiting...\n")
+        exit(1)
+
+    # Check if the file was empty after stripping
+    if not valid_names:
+        print("\nError in wordlist file!\nThe file is empty or only contained blank lines.\n\nExiting...\n")
+        exit(1)
+
+    sorted_names = sorted(valid_names)
 
     try:
         with open(file_path, 'w') as output_file:
