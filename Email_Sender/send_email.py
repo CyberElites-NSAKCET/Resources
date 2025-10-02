@@ -151,7 +151,7 @@ def send_bulk_emails(csv_file_path, body_template_file):
                 print("\nEmail sending operation cancelled by the user.\n\nExiting...\n")
                 sys.exit(0)
 
-            print("\n\nSending emails to recipients.....\n")
+            print("\n\nSending emails to recipients.....\n\nPlease wait...\nIt might take about 10-15 seconds per email depending on your internet speed.\n")
 
             row_index = 2
             for row in reader:
