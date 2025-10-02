@@ -132,23 +132,6 @@ def check_attachments(csv_file_path, attachments_dir_path=None, attachment_mode=
 
 
 ## --------------------------------------------------------------------------
-# Function to check active participants or valid attendance
-def check_attendance(csv_file_path):
-    attendance_data = []
-
-    with open(csv_file_path, mode='r', newline='', encoding='utf-8') as file:
-        reader = csv.DictReader(file)
-        for row in reader:
-            attendance_data.append(row["Attendance"])
-
-    attendance_data = [item.strip().upper() for item in attendance_data]
-
-    if "TRUE" not in attendance_data:
-        print("\nError: No Active participants found in Spreadsheet\nNo participant is marked 'Present' under 'Attendance' column.\n\nExiting...\n")
-        exit(1)
-
-
-## --------------------------------------------------------------------------
 # Function to strip fieldnames and remove any colons
 def clean_csv_fieldnames(file_path):
     """

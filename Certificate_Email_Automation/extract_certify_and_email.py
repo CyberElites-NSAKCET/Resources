@@ -6,12 +6,29 @@ import sys
 parent_dir = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 sys.path.append(parent_dir)
 
-from Utilities.utils import check_attendance, check_body_template, check_csv, check_gmail_app_password, clean_csv_fieldnames, get_files, get_single_file, initialize_necessary_files, load_config, sort_csv
+from Utilities.utils import check_body_template, check_csv, check_gmail_app_password, clean_csv_fieldnames, get_files, get_single_file, initialize_necessary_files, load_config, sort_csv
 
 
 ## ===========================================================================
 ### Functions
 
+# Function to check active participants or valid attendance
+def check_attendance(csv_file_path):
+    attendance_data = []
+
+    with open(csv_file_path, mode='r', newline='', encoding='utf-8') as file:
+        reader = csv.DictReader(file)
+        for row in reader:
+            attendance_data.append(row["Attendance"])
+
+    attendance_data = [item.strip().upper() for item in attendance_data]
+
+    if "TRUE" not in attendance_data:
+        print("\nError: No Active participants found in Spreadsheet\nNo participant is marked 'Present' under 'Attendance' column.\n\nExiting...\n")
+        exit(1)
+
+
+## --------------------------------------------------------------------------
 # Functiont to extract spreadsheet and write necessary columns to wordlist and csv file
 def extract_spreadsheet(spreadsheet_file_path, tosend_csv_path, wordlist_file_path):
     """
